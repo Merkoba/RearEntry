@@ -1,6 +1,6 @@
-# Rear Entry · 裏口便
+# Rear Entry
 
-A Firefox extension that uploads your clipboard to [rentry.co](https://rentry.co) through the back door,
+A Firefox extension that uploads your clipboard to [rentry.co](https://rentry.co)
 and keeps a searchable history of every URL and edit password.
 
 Made by **Merkoba** in 2026 · GPLv3 · https://github.com/Merkoba/RearEntry
@@ -9,7 +9,7 @@ Made by **Merkoba** in 2026 · GPLv3 · https://github.com/Merkoba/RearEntry
 
 - Big **Upload clipboard** button (or press `U`)
 - Optional **title** (kept in your history), **password** (rentry edit code), and **custom URL**
-- 🎲 silly-password generator
+- 🎲 password generator
 - History of up to 100,000 items, 100 per page
 - Search by title, URL, password, date, number or text preview (`/` to focus)
 - Date filters (today / 7 days / 30 days) and sorting

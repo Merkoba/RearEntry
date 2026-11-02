@@ -31,50 +31,22 @@ const state = {
 
 const hay_cache = new WeakMap()
 
-// ---------- Humor department ----------
-
-const QUIPS = [
-  `I polished my doorknob for this moment.`,
-  `Today's fortune: 大吉 for markdown, 小吉 for spreadsheets.`,
-  `Your clipboard will exit quietly, with a small bow.`,
-  `A tanuki guards your passwords. He takes it very seriously.`,
-  `Please mind the gap between the clipboard and the internet.`,
-  `I dream of becoming a sliding door someday. Shhh.`,
-  `Every upload feeds one (1) imaginary onigiri to the server gnomes.`,
-  `Open 24 hours. Like a konbini, but for text.`,
-  `I have never once been slammed. Let's keep it that way.`,
-  `Ganbatte! Your paragraphs believe in you.`,
-  `I bow 15° for short texts and 45° for long ones.`,
-  `Warning: may contain traces of kawaii.`,
-  `The front door is for guests. The back door is for legends.`,
-  `I was a ramen shop door for 31 years. I know things.`,
-  `If you hear a soft "irasshaimase", that is me. Sorry.`,
-  `Tip: a password is just a tiny poem only you understand.`,
-  `Please do not feed the hinges after midnight.`,
-  `I keep 100,000 receipts. I am a very organized door.`,
-  `Knock knock. Who's there? Your text, already uploaded.`,
-  `Today I learned the word "markdown". I feel taller.`,
-]
-
 const SUCCESS = [
-  `配達完了! The server gnomes received it with both hands.`,
-  `Delivered! Ushiro-san is quietly weeping tears of joy.`,
-  `Success! A crow somewhere in Kyoto nodded approvingly.`,
-  `Done! Your text has left through the back, like a true ninja.`,
-  `Delivered! Ushiro-san did a little spin. You missed it.`,
-  `Arrived safely! It was greeted by a polite rice cooker.`,
+  `Successfully uploaded to rentry.co!`,
+  `Delivered! URL and password saved to history.`,
+  `Uploaded successfully!`,
 ]
 
 const COPY_MSGS = {
-  url: [`URL copied ✧`, `URL in your pocket (・ω・)ノ`, `URL secured, captain`],
-  pass: [`Password copied (ง •̀_•́)ง`, `Secret copied. Tell no tanuki.`, `Password tucked away 🔑`],
-  all: [`Both copied ✿ url - password`, `Full combo copied! ☆彡`, `URL + password, bento style 🍱`],
+  url: [`URL copied to clipboard`],
+  pass: [`Password copied to clipboard`],
+  all: [`URL and password copied`],
 }
 
 const WORDS = [
-  `mochi`, `tanuki`, `onigiri`, `daikon`, `kappa`, `natto`, `sakura`, `tamago`, `udon`,
-  `neko`, `kaeru`, `dango`, `tofu`, `wasabi`, `ramen`, `kitsune`, `matcha`, `ika`,
-  `yuzu`, `soba`, `momo`, `kumo`, `hoshi`, `taiyaki`, `bento`, `panda`, `noodle`, `waltz`,
+  `amber`, `beacon`, `cedar`, `cobalt`, `coral`, `delta`, `ember`, `falcon`,
+  `flint`, `glacier`, `harbor`, `haven`, `horizon`, `lunar`, `meadow`, `nebula`,
+  `oasis`, `orbit`, `quartz`, `ridge`, `solar`, `timber`, `valiant`, `vortex`,
 ]
 
 function pick(arr) {
@@ -219,8 +191,11 @@ function send(msg) {
   return browser.runtime.sendMessage(msg)
 }
 
-function open_url(url) {
+function open_url(url, close_window = false) {
   browser.tabs.create({url})
+  if (close_window && !is_tab) {
+    window.close()
+  }
 }
 
 // ---------- Theme ----------
@@ -331,7 +306,7 @@ async function copy(text, kind, btn) {
   }
 
   if (!ok) {
-    toast(`Copy failed. Ushiro-san's hands are too small.`, true)
+    toast(`Failed to copy to clipboard`, true)
     return
   }
 
@@ -468,7 +443,7 @@ const ICON_COMBO = `<svg viewBox="0 0 24 24"><path d="M9 12h6M7 8H6a4 4 0 0 0 0 
 const ICON_OPEN = `<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg>`
 
 function item_html(it, i) {
-  let title = it.title ? hl(it.title) : `Untitled parcel`
+  let title = it.title ? hl(it.title) : `Untitled upload`
   let s = slug(it.url)
   let [host, ...rest] = s.split(`/`)
   let path = rest.join(`/`)
@@ -476,7 +451,7 @@ function item_html(it, i) {
   let full = fmt_date(it.created)
 
   let tip_title = [
-    it.title || `Untitled parcel`,
+    it.title || `Untitled upload`,
     it.url,
     `Password: ${it.password || `—`}`,
     full,
@@ -515,16 +490,16 @@ function empty_html() {
     return `
       <div class="empty">
         <span class="empty-face">🔍</span>
-        <b>Nothing matches.</b>
-        Ushiro-san searched under the doormat, behind the bins and inside a cardboard box. Nothing.
+        <b>No matching uploads.</b>
+        Try searching for another keyword or clearing filters.
       </div>`
   }
 
   return `
     <div class="empty">
-      <span class="empty-face">🚪</span>
-      <b>No parcels yet.</b>
-      Ushiro-san is lonely. He has been practicing his bow in the mirror. Copy some text and press the big button.
+      <span class="empty-face">📋</span>
+      <b>No history yet.</b>
+      Copy markdown or text to your clipboard and click Upload above.
     </div>`
 }
 
@@ -538,7 +513,7 @@ function render() {
   list.scrollTop = 0
 
   let all = state.items.length
-  let noun = all === 1 ? `parcel` : `parcels`
+  let noun = all === 1 ? `upload` : `uploads`
   $(`#count`).textContent = total === all ? `${num(all)} ${noun}` : `${num(total)} of ${num(all)} ${noun}`
 
   let pages = page_count()
@@ -571,7 +546,7 @@ function show_item(it, celebrate = false) {
   modal.style.setProperty(`--hue`, hue(it))
 
   $(`#im-no`).textContent = `No. ${pad(it.seq || 0, 4)}`
-  $(`#im-title`).textContent = it.title || `Untitled parcel`
+  $(`#im-title`).textContent = it.title || `Untitled upload`
   $(`#im-sub`).textContent = `${fmt_date(it.created)} · ${ago(it.created)}`
   $(`#im-url`).textContent = it.url
 
@@ -584,7 +559,7 @@ function show_item(it, celebrate = false) {
     [num(it.chars), `chars`],
     [num(it.lines), `lines`],
     [num(it.words), `words`],
-    [`#${it.seq || 0}`, `parcel`],
+    [`#${it.seq || 0}`, `upload`],
   ].map(([v, l]) => `<div class="stat"><b>${esc(v)}</b><span>${l}</span></div>`).join(``)
 
   let prev = String(it.preview || ``)
@@ -636,8 +611,8 @@ async function delete_current() {
   }
 
   let ok = await confirm_dialog(
-    `Delete this parcel?`,
-    `"${it.title || it.url}" will be removed from your history. The page itself stays on rentry.co. Ushiro-san will pretend not to be sad.`,
+    `Delete this item?`,
+    `"${it.title || it.url}" will be removed from your history. The page will remain on rentry.co.`,
     `Delete`,
   )
 
@@ -649,7 +624,7 @@ async function delete_current() {
 
   if (res && res.ok) {
     close_modal(`item-modal`)
-    toast(`Parcel released into the wind 🍃`)
+    toast(`Item removed from history`)
   }
   else {
     toast(res ? res.error : `Delete failed`, true)
@@ -693,7 +668,7 @@ async function start_upload() {
   let text = await fill_from_clipboard()
 
   if (!text) {
-    toast(`Clipboard is empty. Ushiro-san peeked out, saw nobody, went back inside.`)
+    toast(`Clipboard is empty. Copy some text or type directly.`)
     $(`#up-text`).focus()
   }
   else {
@@ -714,7 +689,7 @@ function set_loading(on) {
 function show_upload_error(msg) {
   let box = $(`#up-error`)
   box.hidden = false
-  box.textContent = `Ushiro-san tripped on the doormat: ${msg}`
+  box.textContent = `Upload failed: ${msg}`
   box.style.animation = `none`
   void box.offsetWidth
   box.style.animation = ``
@@ -814,7 +789,7 @@ async function menu_action(action) {
     let res = await send({type: `export`})
 
     if (res && res.ok) {
-      toast(`Packed ${num(res.count)} parcels into a box 📦`)
+      toast(`Exported ${num(res.count)} items 📦`)
     }
     else if (res && !/cancel/i.test(res.error)) {
       toast(res.error, true)
@@ -846,13 +821,13 @@ async function menu_action(action) {
 
     let ok = await confirm_dialog(
       `Clear all history?`,
-      `All ${num(state.items.length)} parcels (URLs and passwords) will be forgotten forever. Pages stay on rentry.co. Consider exporting first!`,
+      `All ${num(state.items.length)} items (URLs and passwords) will be forgotten forever. Pages stay on rentry.co. Consider exporting first!`,
       `Clear everything`,
     )
 
     if (ok) {
       let res = await send({type: `clear`})
-      toast(res && res.ok ? `Swept clean. Ushiro-san feels lighter.` : `Clear failed`, !(res && res.ok))
+      toast(res && res.ok ? `All history cleared` : `Clear failed`, !(res && res.ok))
     }
   }
 }
@@ -870,8 +845,8 @@ async function import_file(file) {
       throw new Error(res ? res.error : `Import failed`)
     }
 
-    out.textContent = `✓ Imported ${num(res.added)} new parcels · ${num(res.total)} total`
-    toast(`Import complete! Ushiro-san is counting boxes.`)
+    out.textContent = `✓ Imported ${num(res.added)} new items · ${num(res.total)} total`
+    toast(`Import completed successfully!`)
   }
   catch (err) {
     out.textContent = `✗ ${err.message || err}`
@@ -879,34 +854,11 @@ async function import_file(file) {
   }
 }
 
-// ---------- Mascot ----------
-
-let quip_index = Math.floor(Math.random() * QUIPS.length)
-
-function next_quip() {
-  quip_index = (quip_index + 1 + Math.floor(Math.random() * (QUIPS.length - 1))) % QUIPS.length
-  let el = $(`#quip-text`)
-  el.textContent = QUIPS[quip_index]
-  el.style.animation = `none`
-  void el.offsetWidth
-  el.style.animation = ``
-}
-
-function poke() {
-  let m = $(`#mascot`)
-  m.classList.remove(`poke`)
-  void m.offsetWidth
-  m.classList.add(`poke`)
-  next_quip()
-}
-
 // ---------- Events ----------
 
 function bind() {
   $(`#upload-btn`).addEventListener(`click`, start_upload)
   $(`#theme-btn`).addEventListener(`click`, () => apply_theme(state.theme === `dark` ? `light` : `dark`))
-  $(`#mascot`).addEventListener(`click`, poke)
-  $(`#quip`).addEventListener(`click`, poke)
 
   $(`#menu-btn`).addEventListener(`click`, (e) => {
     e.stopPropagation()
@@ -1042,8 +994,8 @@ function bind() {
   $(`#im-copy-url`).addEventListener(`click`, (e) => state.current && copy(state.current.url, `url`, e.currentTarget))
   $(`#im-copy-pass`).addEventListener(`click`, (e) => state.current && copy(state.current.password, `pass`, e.currentTarget))
   $(`#im-copy-all`).addEventListener(`click`, (e) => state.current && copy(copy_all_text(state.current), `all`, e.currentTarget))
-  $(`#im-open`).addEventListener(`click`, () => state.current && open_url(state.current.url))
-  $(`#im-edit`).addEventListener(`click`, () => state.current && open_url(`${state.current.url.replace(/\/+$/, ``)}/edit`))
+  $(`#im-open`).addEventListener(`click`, () => state.current && open_url(state.current.url, true))
+  $(`#im-edit`).addEventListener(`click`, () => state.current && open_url(`${state.current.url.replace(/\/+$/, ``)}/edit`, true))
   $(`#im-delete`).addEventListener(`click`, delete_current)
 
   // Confirm
@@ -1146,7 +1098,6 @@ async function init() {
   state.items = Array.isArray(data.items) ? data.items : []
 
   $(`#ab-ver`).textContent = `v${browser.runtime.getManifest().version}`
-  $(`#quip-text`).textContent = QUIPS[quip_index]
 
   setup_tooltips()
   bind()
