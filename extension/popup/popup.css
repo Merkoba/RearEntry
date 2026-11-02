@@ -468,7 +468,7 @@ html[data-theme="dark"] .item-no { background: hsl(var(--hue) 55% 68%); }
   text-overflow: ellipsis;
 }
 
-.item-title.untitled { color: var(--muted); font-style: italic; font-weight: 700; }
+.item-title.untitled { color: var(--muted); font-weight: 700; }
 
 .item-time {
   flex-shrink: 0;
@@ -893,7 +893,6 @@ html[data-theme="dark"] .btn-soft.ok {
 
 #im-title.untitled {
   color: var(--muted);
-  font-style: italic;
 }
 
 .edit-title-btn {

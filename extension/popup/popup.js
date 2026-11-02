@@ -147,6 +147,15 @@ function num(n) {
   return (Number(n) || 0).toLocaleString()
 }
 
+function plural_word(count, singular, plural_form = `${singular}s`) {
+  return (Number(count) === 1) ? singular : plural_form
+}
+
+function plural(count, singular, plural_form = `${singular}s`) {
+  let n = Number(count) || 0
+  return `${num(n)} ${plural_word(n, singular, plural_form)}`
+}
+
 function slug(url) {
   return String(url || ``).replace(/^https?:\/\/(www\.)?/, ``)
 }
@@ -177,8 +186,9 @@ function hay(item) {
       `#${item.seq}`,
       fmt_date(item.created),
       d.toLocaleString(),
-      d.toDateString(),
-      `${item.chars} chars`,
+      plural(item.chars, `char`),
+      plural(item.words, `word`),
+      plural(item.lines, `line`),
     ].join(`  `).toLowerCase()
 
     hay_cache.set(item, h)
@@ -466,9 +476,9 @@ function item_html(it, i) {
         ${first_line ? `<div class="item-preview" data-tip="${esc(it.preview)}">${hl(first_line)}</div>` : ``}
         <div class="item-meta">
           <span>📅 ${hl(full)}</span>
-          <span>✎ ${num(it.chars)} chars</span>
-          <span>☰ ${num(it.lines)} lines</span>
-          <span>❝ ${num(it.words)} words</span>
+          <span>✎ ${plural(it.chars, `char`)}</span>
+          <span>☰ ${plural(it.lines, `line`)}</span>
+          <span>❝ ${plural(it.words, `word`)}</span>
         </div>
       </div>
       <div class="item-actions">
@@ -507,7 +517,7 @@ function render() {
   list.scrollTop = 0
 
   let all = state.items.length
-  let noun = all === 1 ? `upload` : `uploads`
+  let noun = plural_word(all, `upload`)
   $(`#count`).textContent = total === all ? `${num(all)} ${noun}` : `${num(total)} of ${num(all)} ${noun}`
 
   let pages = page_count()
@@ -551,9 +561,9 @@ function show_item(it, celebrate = false) {
   $(`#im-copy-code`).disabled = !it.edit_code
 
   $(`#im-stats`).innerHTML = [
-    [num(it.chars), `chars`],
-    [num(it.lines), `lines`],
-    [num(it.words), `words`],
+    [num(it.chars), plural_word(it.chars, `char`)],
+    [num(it.lines), plural_word(it.lines, `line`)],
+    [num(it.words), plural_word(it.words, `word`)],
     [`#${it.seq || 0}`, `upload`],
   ].map(([v, l]) => `<div class="stat"><b>${esc(v)}</b><span>${l}</span></div>`).join(``)
 
@@ -686,7 +696,7 @@ function update_upload_meta() {
   let v = $(`#up-text`).value
   let meta = $(`#up-meta`)
   let lines = v ? v.split(`\n`).length : 0
-  meta.textContent = `${num(v.length)} / ${num(MAX_TEXT)} chars · ${num(lines)} lines`
+  meta.textContent = `${num(v.length)} / ${num(MAX_TEXT)} ${plural_word(v.length, `char`)} · ${plural(lines, `line`)}`
   meta.classList.toggle(`bad`, v.length > MAX_TEXT)
 }
 
@@ -842,7 +852,7 @@ async function menu_action(action) {
     let res = await send({type: `export`})
 
     if (res && res.ok) {
-      toast(`Exported ${num(res.count)} items 📦`)
+      toast(`Exported ${plural(res.count, `item`)} 📦`)
     }
     else if (res && !/cancel/i.test(res.error)) {
       toast(res.error, true)
@@ -874,7 +884,7 @@ async function menu_action(action) {
 
     let ok = await confirm_dialog(
       `Clear all history?`,
-      `All ${num(state.items.length)} items (URLs and edit codes) will be forgotten forever. Pages stay on rentry.co. Consider exporting first!`,
+      `All ${plural(state.items.length, `item`)} (URLs and edit codes) will be forgotten forever. Pages stay on rentry.co. Consider exporting first!`,
       `Clear everything`,
     )
 
@@ -898,7 +908,7 @@ async function import_file(file) {
       throw new Error(res ? res.error : `Import failed`)
     }
 
-    out.textContent = `✓ Imported ${num(res.added)} new items · ${num(res.total)} total`
+    out.textContent = `✓ Imported ${plural(res.added, `new item`)} · ${num(res.total)} total`
     toast(`Import completed successfully!`)
   }
   catch (err) {
