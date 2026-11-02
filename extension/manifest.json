@@ -41,7 +41,7 @@
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "rear-entry@merkoba",
+      "id": "rear-entry-2@merkoba",
       "strict_min_version": "115.0",
       "data_collection_permissions": {
         "required": ["none"]
