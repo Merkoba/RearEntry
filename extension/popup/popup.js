@@ -313,17 +313,10 @@ async function copy(text, kind, btn) {
   toast(pick(COPY_MSGS[kind]))
 
   if (btn) {
-    let old = btn.innerHTML
     btn.classList.add(`ok`)
-
-    if (btn.classList.contains(`btn`)) {
-      btn.textContent = `✓ Copied`
-    }
-
     setTimeout(() => {
       btn.classList.remove(`ok`)
-      btn.innerHTML = old
-    }, 1100)
+    }, 600)
   }
 }
 
@@ -439,7 +432,7 @@ function refilter(reset_page = true) {
 }
 
 const ICON_COPY = `<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg>`
-const ICON_COMBO = `<svg viewBox="0 0 24 24"><path d="M9 12h6M7 8H6a4 4 0 0 0 0 8h1M17 8h1a4 4 0 0 1 0 8h-1"/></svg>`
+const ICON_KEY = `<svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 7.7-7.7a1.5 1.5 0 0 1 2.1 0l1.4 1.4a1.5 1.5 0 0 1 0 2.1l-1.5 1.5M16 9l2 2"/></svg>`
 const ICON_OPEN = `<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg>`
 
 function item_html(it, i) {
@@ -479,7 +472,7 @@ function item_html(it, i) {
       </div>
       <div class="item-actions">
         <button class="mini" data-act="copy-url" data-tip="Copy URL">${ICON_COPY}</button>
-        <button class="mini" data-act="copy-all" data-tip="Copy URL - password">${ICON_COMBO}</button>
+        <button class="mini" data-act="copy-pass" data-tip="Copy password">${ICON_KEY}</button>
         <button class="mini" data-act="open" data-tip="Open in new tab">${ICON_OPEN}</button>
       </div>
     </article>`
@@ -942,11 +935,16 @@ function bind() {
     if (a === `copy-url`) {
       copy(it.url, `url`, act)
     }
-    else if (a === `copy-all`) {
-      copy(copy_all_text(it), `all`, act)
+    else if (a === `copy-pass`) {
+      if (!it.password) {
+        toast(`No password saved for this item`)
+      }
+      else {
+        copy(it.password, `pass`, act)
+      }
     }
     else if (a === `open`) {
-      open_url(it.url)
+      open_url(it.url, true)
     }
   })
 
