@@ -173,6 +173,61 @@ function clean_url(s) {
   return String(s || ``).trim().replace(/^https?:\/\/(www\.)?rentry\.(co|org)\//i, ``).replace(/^\/+|\/+$/g, ``)
 }
 
+function clean_error_text(s) {
+  let str = String(s || ``).trim()
+  if (!str) return ``
+
+  let half = Math.floor(str.length / 2)
+  for (let l = half; l >= 6; l--) {
+    let a = str.slice(0, l).trim()
+    let b = str.slice(l).trim()
+    if (a && (a === b)) {
+      str = a
+      break
+    }
+  }
+
+  return str
+}
+
+function parse_rentry_error(data) {
+  let parts = []
+
+  let add = (val) => {
+    if (!val) return
+    if (typeof val === `string`) {
+      let cleaned = clean_error_text(val)
+      if (cleaned && !parts.includes(cleaned)) {
+        parts.push(cleaned)
+      }
+    }
+    else if (Array.isArray(val)) {
+      for (let item of val) {
+        add(item)
+      }
+    }
+    else if (typeof val === `object`) {
+      for (let v of Object.values(val)) {
+        add(v)
+      }
+    }
+  }
+
+  if (data.errors) {
+    add(data.errors)
+  }
+
+  if (data.content && (data.content !== `Invalid data`) && (data.content !== `Upload failed`)) {
+    add(data.content)
+  }
+
+  if (!parts.length && data.content) {
+    add(data.content)
+  }
+
+  return parts.length ? parts.join(`. `) : `Upload failed`
+}
+
 async function upload(args) {
   let text = String(args.text || ``)
   let title = String(args.title || ``).trim().slice(0, 300)
@@ -216,12 +271,7 @@ async function upload(args) {
   }
 
   if ((String(data.status) !== `200`) || !data.url) {
-    let msg = data.content || `Upload failed`
-
-    if (data.errors) {
-      msg += `: ${typeof data.errors === `string` ? data.errors : JSON.stringify(data.errors)}`
-    }
-
+    let msg = parse_rentry_error(data)
     throw new Error(msg)
   }
 

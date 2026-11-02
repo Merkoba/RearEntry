@@ -737,7 +737,11 @@ function set_loading(on) {
 function show_upload_error(msg) {
   let box = $(`#up-error`)
   box.hidden = false
-  box.textContent = `Upload failed: ${msg}`
+  msg = String(msg || `unknown error`).trim()
+  if (/^upload failed[:\s]*/i.test(msg)) {
+    msg = msg.replace(/^upload failed[:\s]*/i, ``)
+  }
+  box.textContent = msg ? `Upload failed: ${msg}` : `Upload failed`
   box.style.animation = `none`
   void box.offsetWidth
   box.style.animation = ``
