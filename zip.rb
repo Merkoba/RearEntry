@@ -10,5 +10,8 @@ name = manifest["name"].downcase.split.join("_")
 
 new_name = "#{name}_v#{version}.zip"
 
-`zip -r #{new_name} extension/* -x "*.zip" "node_modules/*" "package-lock.json" ".eslintcache" ".directory"`
+Dir.chdir("extension") do
+    `zip -r "../#{new_name}" . -x "*.zip" "node_modules/*" "package-lock.json" ".eslintcache" ".directory"`
+end
+
 puts "Created #{new_name}"
