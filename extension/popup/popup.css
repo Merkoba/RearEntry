@@ -494,9 +494,9 @@ html[data-theme="dark"] .item-no { background: hsl(var(--hue) 55% 68%); }
 
 .pill.url { background: rgba(255, 107, 94, .12); color: var(--coral); }
 .pill.url b { font-weight: 700; color: var(--ink); }
-.pill.pw { background: rgba(141, 179, 90, .16); color: var(--matcha-deep); flex: 1; max-width: none; }
-html[data-theme="dark"] .pill.pw { color: var(--matcha); }
-.pill.pw::before { content: "🔑"; font-size: 9px; }
+.pill.code { background: rgba(141, 179, 90, .16); color: var(--matcha-deep); flex: 1; max-width: none; }
+html[data-theme="dark"] .pill.code { color: var(--matcha); }
+.pill.code::before { content: "🔑"; font-size: 9px; }
 
 .item-preview {
   font-size: 11.5px;

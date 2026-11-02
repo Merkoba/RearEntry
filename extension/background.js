@@ -231,7 +231,7 @@ function parse_rentry_error(data) {
 async function upload(args) {
   let text = String(args.text || ``)
   let title = String(args.title || ``).trim().slice(0, 300)
-  let password = String(args.password || ``).trim()
+  let edit_code = String(args.edit_code || ``).trim()
   let custom_url = clean_url(args.custom_url)
 
   if (!text.trim()) {
@@ -246,7 +246,7 @@ async function upload(args) {
     throw new Error(`Custom URL must be 2-100 characters: letters, numbers, - and _`)
   }
 
-  let fields = {text, edit_code: password, url: custom_url}
+  let fields = {text, edit_code, url: custom_url}
   let res = null
   let csrf = await get_csrf(`omit`)
 
@@ -280,7 +280,7 @@ async function upload(args) {
     seq: 0,
     title,
     url: data.url,
-    password: data.edit_code || password,
+    edit_code: data.edit_code || edit_code,
     created: Date.now(),
     chars: text.length,
     lines: text.split(`\n`).length,
@@ -358,7 +358,7 @@ function import_items(incoming) {
         seq,
         title: String(raw.title || ``).slice(0, 300),
         url: raw.url,
-        password: String(raw.password || ``),
+        edit_code: String(raw.edit_code || ``),
         created: Number(raw.created) || Date.now(),
         chars: Number(raw.chars) || 0,
         lines: Number(raw.lines) || 0,

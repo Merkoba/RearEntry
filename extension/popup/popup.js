@@ -39,7 +39,7 @@ const SUCCESS = [
 
 const COPY_MSGS = {
   url: [`URL copied to clipboard`],
-  pass: [`Edit code copied to clipboard`],
+  code: [`Edit code copied to clipboard`],
   all: [`URL and edit code copied`],
 }
 
@@ -171,7 +171,7 @@ function hay(item) {
     h = [
       item.title,
       item.url,
-      item.password,
+      item.edit_code,
       item.preview,
       `no.${item.seq}`,
       `#${item.seq}`,
@@ -442,11 +442,12 @@ function item_html(it, i) {
   let path = rest.join(`/`)
   let first_line = String(it.preview || ``).split(`\n`).find((l) => l.trim()) || ``
   let full = fmt_date(it.created)
+  let code = it.edit_code || ``
 
   let tip_title = [
     it.title || `Untitled upload`,
     it.url,
-    `Edit code: ${it.password || `—`}`,
+    `Edit code: ${code || `—`}`,
     full,
   ].join(`\n`)
 
@@ -460,7 +461,7 @@ function item_html(it, i) {
         </div>
         <div class="item-row">
           <span class="pill url" data-tip="${esc(it.url)}">${hl(host)}/<b>${hl(path)}</b></span>
-          <span class="pill pw" data-tip="${esc(`Edit code: ${it.password || `—`}`)}">${it.password ? hl(it.password) : `—`}</span>
+          <span class="pill code" data-tip="${esc(`Edit code: ${code || `—`}`)}">${code ? hl(code) : `—`}</span>
         </div>
         ${first_line ? `<div class="item-preview" data-tip="${esc(it.preview)}">${hl(first_line)}</div>` : ``}
         <div class="item-meta">
@@ -472,7 +473,7 @@ function item_html(it, i) {
       </div>
       <div class="item-actions">
         <button class="mini" data-act="copy-url" data-tip="Copy URL">${ICON_COPY}</button>
-        <button class="mini" data-act="copy-pass" data-tip="Copy edit code">${ICON_KEY}</button>
+        <button class="mini" data-act="copy-code" data-tip="Copy edit code">${ICON_KEY}</button>
         <button class="mini" data-act="open" data-tip="Open in new tab">${ICON_OPEN}</button>
       </div>
     </article>`
@@ -530,7 +531,7 @@ function find_item(id) {
 // ---------- Item modal ----------
 
 function copy_all_text(it) {
-  return `${it.url} - ${it.password || ``}`.trim()
+  return `${it.url} - ${it.edit_code || ``}`.trim()
 }
 
 function show_item(it, celebrate = false) {
@@ -544,10 +545,10 @@ function show_item(it, celebrate = false) {
   $(`#im-sub`).textContent = `${fmt_date(it.created)} · ${ago(it.created)}`
   $(`#im-url`).textContent = it.url
 
-  let pass = $(`#im-pass`)
-  pass.textContent = it.password || `none saved`
-  pass.classList.toggle(`empty-val`, !it.password)
-  $(`#im-copy-pass`).disabled = !it.password
+  let code_el = $(`#im-code`)
+  code_el.textContent = it.edit_code || `none saved`
+  code_el.classList.toggle(`empty-val`, !it.edit_code)
+  $(`#im-copy-code`).disabled = !it.edit_code
 
   $(`#im-stats`).innerHTML = [
     [num(it.chars), `chars`],
@@ -707,7 +708,7 @@ async function fill_from_clipboard() {
 async function start_upload() {
   $(`#up-error`).hidden = true
   $(`#up-title`).value = ``
-  $(`#up-pass`).value = ``
+  $(`#up-code`).value = ``
   $(`#up-url`).value = ``
   $(`#up-more`).open = false
   set_loading(false)
@@ -782,7 +783,7 @@ async function submit_upload() {
       type: `upload`,
       text,
       title: $(`#up-title`).value,
-      password: $(`#up-pass`).value,
+      edit_code: $(`#up-code`).value.trim(),
       custom_url,
     })
   }
@@ -815,11 +816,11 @@ async function submit_upload() {
   show_item(find_item(res.item.id) || res.item, true)
 }
 
-function dice_password() {
+function dice_edit_code() {
   let a = pick(WORDS)
   let b = pick(WORDS.filter((w) => w !== a))
   let n = Math.floor(1000 + (Math.random() * 9000))
-  $(`#up-pass`).value = `${a}-${b}-${n}`
+  $(`#up-code`).value = `${a}-${b}-${n}`
 }
 
 // ---------- Menu actions ----------
@@ -994,12 +995,12 @@ function bind() {
     if (a === `copy-url`) {
       copy(it.url, `url`, act)
     }
-    else if (a === `copy-pass`) {
-      if (!it.password) {
+    else if (a === `copy-code`) {
+      if (!it.edit_code) {
         toast(`No edit code saved for this item`)
       }
       else {
-        copy(it.password, `pass`, act)
+        copy(it.edit_code, `code`, act)
       }
     }
     else if (a === `open`) {
@@ -1035,10 +1036,10 @@ function bind() {
     let t = await fill_from_clipboard()
     toast(t ? `Clipboard re-read ✓` : `Clipboard is still empty`)
   })
-  $(`#up-dice`).addEventListener(`click`, dice_password)
+  $(`#up-dice`).addEventListener(`click`, dice_edit_code)
   $(`#up-submit`).addEventListener(`click`, submit_upload)
 
-  for (let el of $$(`#up-title, #up-pass, #up-url`)) {
+  for (let el of $$(`#up-title, #up-code, #up-url`)) {
     el.addEventListener(`keydown`, (e) => {
       if (e.key === `Enter`) {
         e.preventDefault()
@@ -1050,7 +1051,7 @@ function bind() {
   // Item modal
   $(`#im-edit-title`).addEventListener(`click`, open_edit_title)
   $(`#im-copy-url`).addEventListener(`click`, (e) => state.current && copy(state.current.url, `url`, e.currentTarget))
-  $(`#im-copy-pass`).addEventListener(`click`, (e) => state.current && copy(state.current.password, `pass`, e.currentTarget))
+  $(`#im-copy-code`).addEventListener(`click`, (e) => state.current && copy(state.current.edit_code, `code`, e.currentTarget))
   $(`#im-copy-all`).addEventListener(`click`, (e) => state.current && copy(copy_all_text(state.current), `all`, e.currentTarget))
   $(`#im-open`).addEventListener(`click`, () => state.current && open_url(state.current.url, true))
   $(`#im-edit`).addEventListener(`click`, () => state.current && open_url(`${state.current.url.replace(/\/+$/, ``)}/edit`, true))
