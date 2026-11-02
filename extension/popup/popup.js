@@ -540,6 +540,7 @@ function show_item(it, celebrate = false) {
 
   $(`#im-no`).textContent = `No. ${pad(it.seq || 0, 4)}`
   $(`#im-title`).textContent = it.title || `Untitled upload`
+  $(`#im-title`).classList.toggle(`untitled`, !it.title)
   $(`#im-sub`).textContent = `${fmt_date(it.created)} · ${ago(it.created)}`
   $(`#im-url`).textContent = it.url
 
@@ -621,6 +622,60 @@ async function delete_current() {
   }
   else {
     toast(res ? res.error : `Delete failed`, true)
+  }
+}
+
+function open_edit_title() {
+  if (!state.current) {
+    return
+  }
+
+  $(`#et-input`).value = state.current.title || ``
+  open_modal(`edit-title-modal`)
+
+  setTimeout(() => {
+    let inp = $(`#et-input`)
+    inp.focus()
+    inp.select()
+  }, 40)
+}
+
+async function save_title() {
+  let it = state.current
+
+  if (!it) {
+    return
+  }
+
+  let input = $(`#et-input`)
+  let new_title = input.value.trim().slice(0, 300)
+  let save_btn = $(`#et-save`)
+
+  save_btn.classList.add(`loading`)
+
+  try {
+    let res = await send({type: `update_title`, id: it.id, title: new_title})
+
+    if (res && res.ok) {
+      it.title = new_title
+      hay_cache.delete(it)
+
+      $(`#im-title`).textContent = it.title || `Untitled upload`
+      $(`#im-title`).classList.toggle(`untitled`, !it.title)
+
+      close_modal(`edit-title-modal`)
+      refilter(false)
+      toast(`Title updated ✓`)
+    }
+    else {
+      toast((res && res.error) || `Failed to update title`, true)
+    }
+  }
+  catch (err) {
+    toast((err && err.message) || `Failed to update title`, true)
+  }
+  finally {
+    save_btn.classList.remove(`loading`)
   }
 }
 
@@ -989,12 +1044,22 @@ function bind() {
   }
 
   // Item modal
+  $(`#im-edit-title`).addEventListener(`click`, open_edit_title)
   $(`#im-copy-url`).addEventListener(`click`, (e) => state.current && copy(state.current.url, `url`, e.currentTarget))
   $(`#im-copy-pass`).addEventListener(`click`, (e) => state.current && copy(state.current.password, `pass`, e.currentTarget))
   $(`#im-copy-all`).addEventListener(`click`, (e) => state.current && copy(copy_all_text(state.current), `all`, e.currentTarget))
   $(`#im-open`).addEventListener(`click`, () => state.current && open_url(state.current.url, true))
   $(`#im-edit`).addEventListener(`click`, () => state.current && open_url(`${state.current.url.replace(/\/+$/, ``)}/edit`, true))
   $(`#im-delete`).addEventListener(`click`, delete_current)
+
+  // Edit title modal
+  $(`#et-save`).addEventListener(`click`, save_title)
+  $(`#et-input`).addEventListener(`keydown`, (e) => {
+    if (e.key === `Enter`) {
+      e.preventDefault()
+      save_title()
+    }
+  })
 
   // Confirm
   $(`#cf-ok`).addEventListener(`click`, () => {
@@ -1072,8 +1137,16 @@ function bind() {
 
     state.items = changes.items.newValue || []
 
-    if (state.current && !find_item(state.current.id)) {
-      if (state.modals.includes(`item-modal`)) {
+    if (state.current) {
+      let updated = find_item(state.current.id)
+
+      if (updated) {
+        state.current = updated
+        hay_cache.delete(updated)
+        $(`#im-title`).textContent = updated.title || `Untitled upload`
+        $(`#im-title`).classList.toggle(`untitled`, !updated.title)
+      }
+      else if (state.modals.includes(`item-modal`)) {
         close_modal(`item-modal`)
       }
     }

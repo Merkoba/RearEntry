@@ -215,15 +215,15 @@ html[data-theme="dark"] .i-sun { display: none; }
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 10px 14px;
   border: 2.5px solid var(--line);
-  border-radius: 18px;
+  border-radius: 15px;
   background: linear-gradient(120deg, var(--coral) 0%, #ff8466 45%, var(--peach) 100%);
   color: #fff;
   text-align: left;
-  box-shadow: 0 5px 0 var(--shadow);
+  box-shadow: 0 4px 0 var(--shadow);
   overflow: hidden;
   transition: transform .14s, box-shadow .14s, filter .2s;
 }
@@ -251,27 +251,27 @@ html[data-theme="dark"] .i-sun { display: none; }
   pointer-events: none;
 }
 
-.upload-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--shadow); filter: saturate(1.1); }
+.upload-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 0 var(--shadow); filter: saturate(1.1); }
 .upload-btn:hover::after { left: 130%; }
-.upload-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--shadow); }
+.upload-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--shadow); }
 .upload-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 
 @keyframes stripes { to { background-position: 100% 0; } }
 
 .upload-icon {
   flex-shrink: 0;
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: #fff;
   color: var(--coral);
-  border: 2.5px solid var(--line);
+  border: 2px solid var(--line);
   animation: bob 2.2s ease-in-out infinite;
 }
 
-.upload-icon svg { width: 24px; height: 24px; stroke-width: 2.6; }
+.upload-icon svg { width: 19px; height: 19px; stroke-width: 2.4; }
 
 @keyframes bob {
   0%, 100% { transform: translateY(0); }
@@ -279,8 +279,8 @@ html[data-theme="dark"] .i-sun { display: none; }
 }
 
 .upload-text { display: flex; flex-direction: column; gap: 2px; flex: 1; position: relative; }
-.upload-title { font-size: 21px; font-weight: 900; letter-spacing: -.01em; text-shadow: 0 2px 0 rgba(43,35,80,.25); }
-.upload-sub { font-size: 10.5px; opacity: .92; letter-spacing: .05em; }
+.upload-title { font-size: 16.5px; font-weight: 900; letter-spacing: -.01em; text-shadow: 0 1.5px 0 rgba(43,35,80,.25); }
+.upload-sub { font-size: 10px; opacity: .92; letter-spacing: .04em; }
 
 .upload-kbd {
   position: relative;
@@ -879,6 +879,59 @@ html[data-theme="dark"] .btn-soft.ok {
 }
 
 .im-sub { font-size: 11px; color: var(--muted); }
+
+.im-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+#im-title.untitled {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.edit-title-btn {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 7px;
+  border: 1.5px solid var(--soft);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  transition: transform .15s var(--ease), color .15s, background .15s, border-color .15s, box-shadow .15s;
+}
+
+.edit-title-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.edit-title-btn:hover {
+  color: #fff;
+  background: var(--coral);
+  border-color: var(--line);
+  transform: scale(1.1) rotate(-6deg);
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.edit-title-btn:active {
+  transform: scale(.95);
+  box-shadow: none;
+}
+
+#edit-title-modal {
+  padding-bottom: 14px;
+}
+
+#edit-title-modal .modal-actions {
+  margin-top: 2px;
+}
 
 .kv { margin-bottom: 10px; }
 

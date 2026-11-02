@@ -250,6 +250,21 @@ async function upload(args) {
 
 // ---------- History operations ----------
 
+function update_title(id, title) {
+  return serial(async () => {
+    let items = await get_items()
+    let it = items.find((x) => x.id === id)
+
+    if (!it) {
+      throw new Error(`Item not found`)
+    }
+
+    it.title = String(title || ``).trim().slice(0, 300)
+    await save_items(items)
+    return {item: it}
+  })
+}
+
 function delete_item(id) {
   return serial(async () => {
     let items = await get_items()
@@ -339,6 +354,7 @@ browser.runtime.onMessage.addListener((msg) => {
   let run = async () => {
     switch (msg && msg.type) {
       case `upload`: return {item: await upload(msg)}
+      case `update_title`: return await update_title(msg.id, msg.title)
       case `delete`: await delete_item(msg.id); return {}
       case `clear`: await clear_items(); return {}
       case `import`: return await import_items(msg.items)
