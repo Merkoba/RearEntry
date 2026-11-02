@@ -1,0 +1,21 @@
+Make a Firefox extension that will upload text from the clipboard into rentry.co, the markdown uploader site.
+
+It will have an icon that when clicked shows a popup.
+
+The popup will have a button to Upload at the top, easy to click, big.
+
+When clicked, a popup appears prompting for an optional Title and an optional Password. And a button to "Submit" to complete the process.
+
+Below there is a list of previous uploads.
+
+When a post is created, the password and url are saved into these historical items.
+
+When an item is clicked, it will display a popup with the url and password, each with a "Copy" button next to it so they can be copied. The popup also has a "Open" button to open a tab using the url. Also add a "Copy All" button that copies the url and password separated by " - ". The item container overflows and it displays a max of 100 items at a time, the next ones are paginated. The hard max limit of items is 100k in case something bad happens. Have some filter to find items based on the title, password, date, anything that can be used identify an item. Show as much information as possible in the item list, don't try to be "minimalist" but be slick. Use tooltips if you must to show the full information.
+
+When an upload succeeds, an items is added to the top of the list, and auto-opens, so the user can copy the url and passwords.
+
+Give it a slick and positive design, with some sort of that bizarre friendly humor japan has. Not a weaboo thing, but a bit bizarre and interesting in that japanese style. Very polished, not generic. Have a button somewhere to change between a light theme and a dark theme, save the preference in browser.storage.local.
+
+Make an image for the icon of this extension. The extension will be called Rear Entry, made by Merkoba, in 2026. github.com/Merkoba/RearEntry. GLPv3 license.
+
+Lets make this look very professional, useful, complete, fun.

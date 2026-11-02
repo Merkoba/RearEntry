@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rear Entry · 裏口便</title>
+  <meta name="description" content="Rear Entry uploads your clipboard to rentry.co through the back door and keeps a searchable history of URLs and edit passwords.">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="../icons/icon-64.png" class="mascot" id="mascot" alt="Ushiro-san, the door mascot" data-tip="Ushiro-san, your door. Poke him.">
+        <div class="brand-text">
+          <h1>Rear Entry</h1>
+          <span class="jp">裏口便 · uraguchi-bin</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-btn" id="theme-btn" data-tip="Toggle light / dark" aria-label="Toggle theme">
+          <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/><path d="M17 4.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"/></svg>
+        </button>
+
+        <div class="menu-wrap">
+          <button class="icon-btn" id="menu-btn" data-tip="More things" aria-label="Menu">
+            <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+
+          <div class="menu" id="menu" hidden>
+            <button data-action="export"><span>📦</span> Export history</button>
+            <button data-action="import"><span>📥</span> Import history</button>
+            <button data-action="tab" id="menu-tab"><span>🪟</span> Open in a tab</button>
+            <button data-action="about"><span>🚪</span> About Rear Entry</button>
+            <hr>
+            <button data-action="clear" class="danger"><span>🧹</span> Clear all history</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <button class="upload-btn" id="upload-btn">
+      <span class="upload-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 16V4M6.5 9.5 12 4l5.5 5.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>
+      </span>
+      <span class="upload-text">
+        <span class="upload-title">Upload clipboard</span>
+        <span class="upload-sub">クリップボードを裏口からそっと送る</span>
+      </span>
+      <kbd class="upload-kbd">U</kbd>
+    </button>
+
+    <div class="quip" id="quip" data-tip="Click for more wisdom">
+      <span class="quip-who">Ushiro-san</span>
+      <span class="quip-text" id="quip-text"></span>
+    </div>
+
+    <section class="history" aria-label="Upload history">
+      <div class="filters">
+        <label class="search">
+          <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
+          <input id="search" type="search" placeholder="Search title, url, password, date, text…" autocomplete="off" spellcheck="false">
+          <kbd>/</kbd>
+        </label>
+
+        <select id="sort" class="select" data-tip="Sort order">
+          <option value="new">Newest</option>
+          <option value="old">Oldest</option>
+          <option value="title">Title A→Z</option>
+          <option value="size">Biggest</option>
+        </select>
+      </div>
+
+      <div class="chips" id="chips">
+        <button class="chip active" data-range="all">All</button>
+        <button class="chip" data-range="today">Today</button>
+        <button class="chip" data-range="week">7 days</button>
+        <button class="chip" data-range="month">30 days</button>
+        <span class="count" id="count"></span>
+      </div>
+
+      <div class="list" id="list"></div>
+
+      <nav class="pager" id="pager" hidden>
+        <button class="pg-btn" id="pg-first" data-tip="First page">«</button>
+        <button class="pg-btn" id="pg-prev" data-tip="Previous page">‹</button>
+        <span class="pg-label" id="pg-label"></span>
+        <button class="pg-btn" id="pg-next" data-tip="Next page">›</button>
+        <button class="pg-btn" id="pg-last" data-tip="Last page">»</button>
+      </nav>
+    </section>
+
+    <footer class="footer">
+      <span>© 2026 Merkoba</span>
+      <span class="dot">·</span>
+      <span>GPLv3</span>
+      <span class="dot">·</span>
+      <a href="https://github.com/Merkoba/RearEntry" class="ext-link" id="gh-link">github.com/Merkoba/RearEntry</a>
+    </footer>
+  </div>
+
+  <!-- ============ Modals ============ -->
+  <div class="overlay" id="overlay" hidden>
+
+    <!-- Upload -->
+    <div class="modal" id="upload-modal" role="dialog" aria-labelledby="up-heading" hidden>
+      <button class="modal-x" data-close aria-label="Close">×</button>
+      <div class="modal-head">
+        <h2 id="up-heading">Through the back door</h2>
+        <span class="jp">裏口から、こっそり配達</span>
+      </div>
+
+      <div class="field">
+        <div class="field-label">
+          <span>Clipboard contents</span>
+          <button class="link-btn" id="up-reread" data-tip="Read the clipboard again">↻ Re-read</button>
+        </div>
+        <textarea id="up-text" rows="6" spellcheck="false" placeholder="Your clipboard is empty. Paste something here, Ushiro-san will wait."></textarea>
+        <div class="field-meta" id="up-meta"></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="up-title"><span>Title <em>optional · saved only in your history</em></span></label>
+        <input id="up-title" class="input" type="text" maxlength="300" placeholder="e.g. Grandma's secret natto recipe" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="up-pass"><span>Password <em>optional · rentry edit code</em></span></label>
+        <div class="input-row">
+          <input id="up-pass" class="input mono" type="text" maxlength="100" placeholder="Leave empty and rentry makes one" autocomplete="off" spellcheck="false">
+          <button class="btn btn-ghost square" id="up-dice" data-tip="Roll a silly password">🎲</button>
+        </div>
+      </div>
+
+      <details class="more" id="up-more">
+        <summary>More options</summary>
+        <div class="field">
+          <label class="field-label" for="up-url"><span>Custom URL <em>optional</em></span></label>
+          <div class="input-prefix">
+            <span>rentry.co/</span>
+            <input id="up-url" class="input mono" type="text" maxlength="100" placeholder="my-cool-page" autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+      </details>
+
+      <div class="error-box" id="up-error" hidden></div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close>Cancel</button>
+        <button class="btn btn-primary" id="up-submit">
+          <span class="btn-label">Submit</span>
+          <span class="spinner" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="hint">Ctrl + Enter to submit</div>
+    </div>
+
+    <!-- Item -->
+    <div class="modal item-modal" id="item-modal" role="dialog" aria-labelledby="im-title" hidden>
+      <div class="petals" id="im-petals"></div>
+      <div class="stamp" id="im-stamp" hidden><span>配達</span><span>完了</span></div>
+      <button class="modal-x" data-close aria-label="Close">×</button>
+
+      <div class="modal-head">
+        <div class="im-no" id="im-no"></div>
+        <h2 id="im-title"></h2>
+        <span class="im-sub" id="im-sub"></span>
+      </div>
+
+      <div class="celebrate" id="im-celebrate" hidden></div>
+
+      <div class="kv">
+        <div class="kv-label">URL</div>
+        <div class="kv-row">
+          <code class="kv-value" id="im-url"></code>
+          <button class="btn btn-soft" id="im-copy-url">Copy</button>
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="kv-label">Password</div>
+        <div class="kv-row">
+          <code class="kv-value" id="im-pass"></code>
+          <button class="btn btn-soft" id="im-copy-pass">Copy</button>
+        </div>
+      </div>
+
+      <div class="im-stats" id="im-stats"></div>
+
+      <div class="kv">
+        <div class="kv-label">Preview</div>
+        <pre class="im-preview" id="im-preview"></pre>
+      </div>
+
+      <div class="modal-actions spread">
+        <button class="btn btn-danger-ghost" id="im-delete" data-tip="Remove from history (the page stays on rentry)">Delete</button>
+        <div class="grp">
+          <button class="btn btn-ghost" id="im-edit" data-tip="Open the rentry edit page">Edit</button>
+          <button class="btn btn-ghost" id="im-copy-all" data-tip="Copies: url - password">Copy All</button>
+          <button class="btn btn-primary" id="im-open">Open ↗</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm -->
+    <div class="modal small" id="confirm-modal" role="alertdialog" aria-labelledby="cf-title" hidden>
+      <div class="modal-head">
+        <h2 id="cf-title"></h2>
+      </div>
+      <p class="cf-text" id="cf-text"></p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="cf-cancel">Never mind</button>
+        <button class="btn btn-danger" id="cf-ok">Do it</button>
+      </div>
+    </div>
+
+    <!-- Import -->
+    <div class="modal small" id="import-modal" role="dialog" aria-labelledby="ip-title" hidden>
+      <button class="modal-x" data-close aria-label="Close">×</button>
+      <div class="modal-head">
+        <h2 id="ip-title">Import history</h2>
+        <span class="jp">荷物の受け取り</span>
+      </div>
+      <p class="cf-text">Pick a JSON file exported by Rear Entry. Duplicates (same URL) are skipped, nothing gets overwritten.</p>
+      <label class="btn btn-primary file-btn">
+        Choose file…
+        <input type="file" id="ip-file" accept=".json,application/json" hidden>
+      </label>
+      <div class="ip-result" id="ip-result"></div>
+    </div>
+
+    <!-- About -->
+    <div class="modal small about" id="about-modal" role="dialog" aria-labelledby="ab-title" hidden>
+      <button class="modal-x" data-close aria-label="Close">×</button>
+      <img src="../icons/icon-256.png" class="about-icon" alt="">
+      <h2 id="ab-title">Rear Entry <span class="ver" id="ab-ver"></span></h2>
+      <span class="jp">裏口便</span>
+      <p>Sends your clipboard to <b>rentry.co</b> and remembers the URL and edit password so you never lose them.</p>
+      <p class="lore">Ushiro-san is a retired back door from a small ramen shop in Shimokitazawa. He now delivers text. He is very punctual and slightly damp.</p>
+      <p class="credits">Made by <b>Merkoba</b> in 2026 · GPLv3<br>
+        <a href="https://github.com/Merkoba/RearEntry" class="ext-link">github.com/Merkoba/RearEntry</a></p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="tooltip" id="tooltip" role="tooltip"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
