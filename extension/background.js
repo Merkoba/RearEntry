@@ -10,7 +10,7 @@
 "use strict"
 
 const RENTRY = `https://rentry.co`
-const MAX_ITEMS = 100000
+const MAX_ITEMS = 5000
 const MAX_TEXT = 200000
 const PREVIEW_LEN = 240
 const EXT_BASE = browser.runtime.getURL(``)
