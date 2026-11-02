@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rear Entry</title>
-  <meta name="description" content="Rear Entry uploads your clipboard to rentry.co through the back door and keeps a searchable history of URLs and edit passwords.">
+  <meta name="description" content="Rear Entry uploads your clipboard to rentry.co through the back door and keeps a searchable history of URLs and edit codes.">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -55,7 +55,7 @@
       <div class="filters">
         <label class="search">
           <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
-          <input id="search" type="search" placeholder="Search title, url, password, date, text…" autocomplete="off" spellcheck="false">
+          <input id="search" type="search" placeholder="Search title, url, edit code, date, text…" autocomplete="off" spellcheck="false">
           <kbd>/</kbd>
         </label>
 
@@ -120,10 +120,10 @@
       </div>
 
       <div class="field">
-        <label class="field-label" for="up-pass"><span>Password <em>optional · rentry edit code</em></span></label>
+        <label class="field-label" for="up-pass"><span>Edit code <em>optional</em></span></label>
         <div class="input-row">
-          <input id="up-pass" class="input mono" type="text" maxlength="100" placeholder="Leave empty for an auto-generated password" autocomplete="off" spellcheck="false">
-          <button class="btn btn-ghost square" id="up-dice" data-tip="Generate a random password">🎲</button>
+          <input id="up-pass" class="input mono" type="text" maxlength="100" placeholder="Leave empty for an auto-generated edit code" autocomplete="off" spellcheck="false">
+          <button class="btn btn-ghost square" id="up-dice" data-tip="Generate a random edit code">🎲</button>
         </div>
       </div>
 
@@ -178,7 +178,7 @@
       </div>
 
       <div class="kv">
-        <div class="kv-label">Password</div>
+        <div class="kv-label">Edit Code</div>
         <div class="kv-row">
           <code class="kv-value" id="im-pass"></code>
           <button class="btn btn-soft" id="im-copy-pass">Copy</button>
@@ -196,7 +196,7 @@
         <button class="btn btn-danger-ghost" id="im-delete" data-tip="Remove from history (page remains on rentry.co)">Delete</button>
         <div class="grp">
           <button class="btn btn-ghost" id="im-edit" data-tip="Open the rentry edit page">Edit</button>
-          <button class="btn btn-ghost" id="im-copy-all" data-tip="Copies: url - password">Copy All</button>
+          <button class="btn btn-ghost" id="im-copy-all" data-tip="Copies: url - edit code">Copy All</button>
           <button class="btn btn-primary" id="im-open">Open ↗</button>
         </div>
       </div>
@@ -255,7 +255,7 @@
       <button class="modal-x" data-close aria-label="Close">×</button>
       <img src="../icons/icon-256.png" class="about-icon" alt="">
       <h2 id="ab-title">Rear Entry <span class="ver" id="ab-ver"></span></h2>
-      <p>Quickly upload clipboard markdown to <b>rentry.co</b> and maintain a searchable history of URLs and edit passwords.</p>
+      <p>Quickly upload clipboard markdown to <b>rentry.co</b> and maintain a searchable history of URLs and edit codes.</p>
       <p class="credits">Made by <b>Merkoba</b> in 2026 · GPLv3<br>
         <a href="https://github.com/Merkoba/RearEntry" class="ext-link">github.com/Merkoba/RearEntry</a></p>
     </div>

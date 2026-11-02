@@ -1,19 +1,19 @@
 # Rear Entry
 
 A Firefox extension that uploads your clipboard to [rentry.co](https://rentry.co)
-and keeps a searchable history of every URL and edit password.
+and keeps a searchable history of every URL and edit code.
 
 Made by **Merkoba** in 2026 · GPLv3 · https://github.com/Merkoba/RearEntry
 
 ## Features
 
 - Big **Upload clipboard** button (or press `U`)
-- Optional **title** (kept in your history), **password** (rentry edit code), and **custom URL**
-- 🎲 password generator
+- Optional **title** (kept in your history), **edit code**, and **custom URL**
+- 🎲 edit code generator
 - History of up to 5,000 items, 100 per page
-- Search by title, URL, password, date, number or text preview (`/` to focus)
+- Search by title, URL, edit code, date, number or text preview (`/` to focus)
 - Date filters (today / 7 days / 30 days) and sorting
-- Item details: copy URL, copy password, **Copy All** (`url - password`), open, edit page
+- Item details: copy URL, copy edit code, **Copy All** (`url - edit code`), open, edit page
 - New uploads appear at the top and open automatically
 - Light / dark theme, saved in `browser.storage.local`
 - Export / import history as JSON

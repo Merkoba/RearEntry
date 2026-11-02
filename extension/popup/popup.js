@@ -33,14 +33,14 @@ const hay_cache = new WeakMap()
 
 const SUCCESS = [
   `Successfully uploaded to rentry.co!`,
-  `Delivered! URL and password saved to history.`,
+  `Delivered! URL and edit code saved to history.`,
   `Uploaded successfully!`,
 ]
 
 const COPY_MSGS = {
   url: [`URL copied to clipboard`],
-  pass: [`Password copied to clipboard`],
-  all: [`URL and password copied`],
+  pass: [`Edit code copied to clipboard`],
+  all: [`URL and edit code copied`],
 }
 
 const WORDS = [
@@ -446,7 +446,7 @@ function item_html(it, i) {
   let tip_title = [
     it.title || `Untitled upload`,
     it.url,
-    `Password: ${it.password || `—`}`,
+    `Edit code: ${it.password || `—`}`,
     full,
   ].join(`\n`)
 
@@ -460,7 +460,7 @@ function item_html(it, i) {
         </div>
         <div class="item-row">
           <span class="pill url" data-tip="${esc(it.url)}">${hl(host)}/<b>${hl(path)}</b></span>
-          <span class="pill pw" data-tip="${esc(`Password: ${it.password || `—`}`)}">${it.password ? hl(it.password) : `—`}</span>
+          <span class="pill pw" data-tip="${esc(`Edit code: ${it.password || `—`}`)}">${it.password ? hl(it.password) : `—`}</span>
         </div>
         ${first_line ? `<div class="item-preview" data-tip="${esc(it.preview)}">${hl(first_line)}</div>` : ``}
         <div class="item-meta">
@@ -472,7 +472,7 @@ function item_html(it, i) {
       </div>
       <div class="item-actions">
         <button class="mini" data-act="copy-url" data-tip="Copy URL">${ICON_COPY}</button>
-        <button class="mini" data-act="copy-pass" data-tip="Copy password">${ICON_KEY}</button>
+        <button class="mini" data-act="copy-pass" data-tip="Copy edit code">${ICON_KEY}</button>
         <button class="mini" data-act="open" data-tip="Open in new tab">${ICON_OPEN}</button>
       </div>
     </article>`
@@ -873,7 +873,7 @@ async function menu_action(action) {
 
     let ok = await confirm_dialog(
       `Clear all history?`,
-      `All ${num(state.items.length)} items (URLs and passwords) will be forgotten forever. Pages stay on rentry.co. Consider exporting first!`,
+      `All ${num(state.items.length)} items (URLs and edit codes) will be forgotten forever. Pages stay on rentry.co. Consider exporting first!`,
       `Clear everything`,
     )
 
@@ -996,7 +996,7 @@ function bind() {
     }
     else if (a === `copy-pass`) {
       if (!it.password) {
-        toast(`No password saved for this item`)
+        toast(`No edit code saved for this item`)
       }
       else {
         copy(it.password, `pass`, act)

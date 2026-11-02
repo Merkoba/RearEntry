@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Rear Entry",
   "version": "2.0.0",
-  "description": "Upload your clipboard to rentry.co through the back door. Keeps a searchable history of URLs and edit passwords.",
+  "description": "Upload your clipboard to rentry.co through the back door. Keeps a searchable history of URLs and edit codes.",
   "author": "Merkoba",
   "homepage_url": "https://github.com/Merkoba/RearEntry",
 
