@@ -773,6 +773,30 @@ textarea {
   animation: shake .4s ease;
 }
 
+.error-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.error-actions button {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 1.5px solid var(--hanko);
+  background: var(--surface);
+  color: var(--hanko);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.error-actions button:hover {
+  background: var(--hanko);
+  color: #ffffff;
+}
+
 @keyframes shake {
   20%, 60% { transform: translateX(-4px); }
   40%, 80% { transform: translateX(4px); }

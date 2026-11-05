@@ -46,7 +46,7 @@
       </span>
       <span class="upload-text">
         <span class="upload-title">Upload clipboard</span>
-        <span class="upload-sub">Send clipboard contents to rentry.co</span>
+        <span class="upload-sub" id="upload-sub">Send clipboard contents to rentry.co</span>
       </span>
       <kbd class="upload-kbd">U</kbd>
     </button>
@@ -102,7 +102,7 @@
     <div class="modal" id="upload-modal" role="dialog" aria-labelledby="up-heading" hidden>
       <button class="modal-x" data-close aria-label="Close">×</button>
       <div class="modal-head">
-        <h2 id="up-heading">Upload to rentry.co</h2>
+        <h2 id="up-heading">Upload to rentry</h2>
       </div>
 
       <div class="field">
@@ -130,15 +130,25 @@
       <details class="more" id="up-more">
         <summary>More options</summary>
         <div class="field">
+          <label class="field-label" for="up-domain"><span>Domain</span></label>
+          <select id="up-domain" class="select" data-tip="Service domain to upload to">
+            <option value="https://rentry.co">rentry.co (Cloudflare)</option>
+            <option value="https://rentry.org">rentry.org (Direct / no Cloudflare)</option>
+          </select>
+        </div>
+        <div class="field">
           <label class="field-label" for="up-url"><span>Custom URL <em>optional</em></span></label>
           <div class="input-prefix">
-            <span>rentry.co/</span>
+            <span id="up-prefix">rentry.co/</span>
             <input id="up-url" class="input mono" type="text" maxlength="100" placeholder="custom-slug" autocomplete="off" spellcheck="false">
           </div>
         </div>
       </details>
 
-      <div class="error-box" id="up-error" hidden></div>
+      <div class="error-box" id="up-error" hidden>
+        <div class="error-msg" id="up-error-msg"></div>
+        <div class="error-actions" id="up-error-actions" hidden></div>
+      </div>
 
       <div class="modal-actions">
         <button class="btn btn-ghost" data-close>Cancel</button>
@@ -255,7 +265,7 @@
       <button class="modal-x" data-close aria-label="Close">×</button>
       <img src="../icons/icon-256.png" class="about-icon" alt="">
       <h2 id="ab-title">Rear Entry <span class="ver" id="ab-ver"></span></h2>
-      <p>Quickly upload clipboard markdown to <b>rentry.co</b> and maintain a searchable history of URLs and edit codes.</p>
+      <p>Quickly upload clipboard markdown to <b>rentry.co</b> or <b>rentry.org</b> and maintain a searchable history of URLs and edit codes.</p>
       <p class="credits">Made by <b>Merkoba</b> in 2026 · GPLv3<br>
         <a href="https://github.com/Merkoba/RearEntry" class="ext-link">github.com/Merkoba/RearEntry</a></p>
     </div>

@@ -24,6 +24,7 @@ const state = {
   range: `all`,
   sort: `new`,
   theme: `light`,
+  domain: `https://rentry.co`,
   current: null,
   modals: [],
   fresh_id: null,
@@ -32,9 +33,9 @@ const state = {
 const hay_cache = new WeakMap()
 
 const SUCCESS = [
-  `Successfully uploaded to rentry.co!`,
-  `Delivered! URL and edit code saved to history.`,
   `Uploaded successfully!`,
+  `Delivered! URL and edit code saved to history.`,
+  `Successfully uploaded to rentry!`,
 ]
 
 const COPY_MSGS = {
@@ -223,6 +224,35 @@ function apply_theme(theme, save = true) {
 
   if (save) {
     browser.storage.local.set({theme: state.theme})
+  }
+}
+
+function apply_domain(domain, save = true) {
+  state.domain = (domain === `https://rentry.org`) ? `https://rentry.org` : `https://rentry.co`
+  let host = new URL(state.domain).host
+
+  let sel = $(`#up-domain`)
+  if (sel && (sel.value !== state.domain)) {
+    sel.value = state.domain
+  }
+
+  let prefix = $(`#up-prefix`)
+  if (prefix) {
+    prefix.textContent = `${host}/`
+  }
+
+  let sub = $(`#upload-sub`)
+  if (sub) {
+    sub.textContent = `Send clipboard contents to ${host}`
+  }
+
+  let heading = $(`#up-heading`)
+  if (heading) {
+    heading.textContent = `Upload to ${host}`
+  }
+
+  if (save) {
+    browser.storage.local.set({domain: state.domain})
   }
 }
 
@@ -745,14 +775,51 @@ function set_loading(on) {
   }
 }
 
-function show_upload_error(msg) {
+function show_upload_error(err) {
   let box = $(`#up-error`)
+  let msgEl = $(`#up-error-msg`) || box
+  let actionsEl = $(`#up-error-actions`)
+
   box.hidden = false
+  if (actionsEl) {
+    actionsEl.innerHTML = ``
+    actionsEl.hidden = true
+  }
+
+  let msg = typeof err === `string` ? err : (err && err.error) || `unknown error`
   msg = String(msg || `unknown error`).trim()
   if (/^upload failed[:\s]*/i.test(msg)) {
     msg = msg.replace(/^upload failed[:\s]*/i, ``)
   }
-  box.textContent = msg ? `Upload failed: ${msg}` : `Upload failed`
+  msgEl.textContent = msg ? `Upload failed: ${msg}` : `Upload failed`
+
+  if (err && (err.is_cf || /cloudflare/i.test(msg) || /403/i.test(msg))) {
+    if (actionsEl) {
+      actionsEl.hidden = false
+      let targetDomain = err.domain || state.domain || `https://rentry.co`
+      let host = new URL(targetDomain).host
+
+      let btnVerify = document.createElement(`button`)
+      btnVerify.type = `button`
+      btnVerify.textContent = `Open ${host} in tab to verify`
+      btnVerify.addEventListener(`click`, () => {
+        open_url(targetDomain)
+      })
+      actionsEl.appendChild(btnVerify)
+
+      if (targetDomain.includes(`rentry.co`)) {
+        let btnSwitch = document.createElement(`button`)
+        btnSwitch.type = `button`
+        btnSwitch.textContent = `Switch to rentry.org & retry`
+        btnSwitch.addEventListener(`click`, async () => {
+          apply_domain(`https://rentry.org`)
+          await submit_upload()
+        })
+        actionsEl.appendChild(btnSwitch)
+      }
+    }
+  }
+
   box.style.animation = `none`
   void box.offsetWidth
   box.style.animation = ``
@@ -795,6 +862,7 @@ async function submit_upload() {
       title: $(`#up-title`).value,
       edit_code: $(`#up-code`).value.trim(),
       custom_url,
+      domain: state.domain,
     })
   }
   catch (err) {
@@ -804,8 +872,14 @@ async function submit_upload() {
   set_loading(false)
 
   if (!res || !res.ok) {
-    show_upload_error((res && res.error) || `unknown error`)
+    show_upload_error(res || `unknown error`)
     return
+  }
+
+  if (res.fallback_used && res.used_domain) {
+    let usedHost = new URL(res.used_domain).host
+    let prefHost = new URL(res.preferred_domain).host
+    toast(`Uploaded to ${usedHost} (${prefHost} was blocked by Cloudflare)`)
   }
 
   // Make sure the new item is visible at the top
@@ -1048,6 +1122,7 @@ function bind() {
   })
   $(`#up-dice`).addEventListener(`click`, dice_edit_code)
   $(`#up-submit`).addEventListener(`click`, submit_upload)
+  $(`#up-domain`).addEventListener(`change`, (e) => apply_domain(e.target.value))
 
   for (let el of $$(`#up-title, #up-code, #up-url`)) {
     el.addEventListener(`keydown`, (e) => {
@@ -1178,9 +1253,10 @@ async function init() {
     $(`#menu-tab`).hidden = true
   }
 
-  let data = await browser.storage.local.get([`items`, `theme`])
+  let data = await browser.storage.local.get([`items`, `theme`, `domain`])
   let theme = data.theme || document.documentElement.dataset.theme || `light`
   apply_theme(theme, false)
+  apply_domain(data.domain || `https://rentry.co`, false)
   state.items = Array.isArray(data.items) ? data.items : []
 
   $(`#ab-ver`).textContent = `v${browser.runtime.getManifest().version}`

@@ -9,14 +9,16 @@
 
 "use strict"
 
-const RENTRY = `https://rentry.co`
+const RENTRY_CO = `https://rentry.co`
+const RENTRY_ORG = `https://rentry.org`
+const RENTRY_DOMAINS = [RENTRY_CO, RENTRY_ORG]
 const MAX_ITEMS = 5000
 const MAX_TEXT = 200000
 const PREVIEW_LEN = 240
 const EXT_BASE = browser.runtime.getURL(``)
 
-// Token captured from the Set-Cookie header of our own GET request
-let captured_csrf = null
+// Tokens captured from the Set-Cookie headers of our GET requests, keyed by origin
+const captured_csrf = new Map()
 
 // Token we want injected as a Cookie header in the next API request
 let inject_csrf = null
@@ -33,17 +35,21 @@ browser.webRequest.onHeadersReceived.addListener(
       return
     }
 
-    for (let h of details.responseHeaders || []) {
-      if ((h.name.toLowerCase() === `set-cookie`) && h.value) {
-        let m = h.value.match(/(?:^|[\s;,])csrftoken=([^;\s,]+)/)
+    try {
+      let origin = new URL(details.url).origin
+      for (let h of details.responseHeaders || []) {
+        if ((h.name.toLowerCase() === `set-cookie`) && h.value) {
+          let m = h.value.match(/(?:^|[\s;,])csrftoken=([^;\s,]+)/)
 
-        if (m) {
-          captured_csrf = m[1]
+          if (m) {
+            captured_csrf.set(origin, m[1])
+          }
         }
       }
     }
+    catch (err) {}
   },
-  {urls: [`${RENTRY}/*`]},
+  {urls: [`https://rentry.co/*`, `https://rentry.org/*`]},
   [`responseHeaders`],
 )
 
@@ -54,23 +60,31 @@ browser.webRequest.onBeforeSendHeaders.addListener(
       return {}
     }
 
-    let drop = [`referer`, `origin`]
+    let origin = new URL(details.url).origin
+    let headers = details.requestHeaders.filter(
+      (h) => ![`referer`, `origin`].includes(h.name.toLowerCase())
+    )
+    headers.push({name: `Referer`, value: `${origin}/`})
+    headers.push({name: `Origin`, value: origin})
 
     if (inject_csrf) {
-      drop.push(`cookie`)
-    }
-
-    let headers = details.requestHeaders.filter((h) => !drop.includes(h.name.toLowerCase()))
-    headers.push({name: `Referer`, value: `${RENTRY}/`})
-    headers.push({name: `Origin`, value: RENTRY})
-
-    if (inject_csrf) {
-      headers.push({name: `Cookie`, value: `csrftoken=${inject_csrf}`})
+      let cookieHeader = headers.find((h) => h.name.toLowerCase() === `cookie`)
+      if (cookieHeader) {
+        // Preserve other cookies (like cf_clearance, __cf_bm, etc.) so Cloudflare clearance isn't dropped
+        let cookies = cookieHeader.value
+          .split(`; `)
+          .filter((c) => !c.trim().toLowerCase().startsWith(`csrftoken=`))
+        cookies.push(`csrftoken=${inject_csrf}`)
+        cookieHeader.value = cookies.join(`; `)
+      }
+      else {
+        headers.push({name: `Cookie`, value: `csrftoken=${inject_csrf}`})
+      }
     }
 
     return {requestHeaders: headers}
   },
-  {urls: [`${RENTRY}/api/*`]},
+  {urls: [`https://rentry.co/api/*`, `https://rentry.org/api/*`]},
   [`blocking`, `requestHeaders`],
 )
 
@@ -114,36 +128,73 @@ function make_id() {
 
 // ---------- Rentry ----------
 
-async function get_csrf(mode) {
-  captured_csrf = null
+function is_cloudflare_challenge(status, body) {
+  let s = String(body || ``)
+  if (status === 403 || status === 503) {
+    if (
+      s.includes(`cf-chl`) ||
+      s.includes(`challenge-platform`) ||
+      s.includes(`Just a moment...`) ||
+      s.includes(`Cloudflare`) ||
+      s.includes(`Attention Required! | Cloudflare`) ||
+      s.includes(`Enable JavaScript and cookies to continue`) ||
+      /<html[^>]*>[\s\S]*403 Forbidden/i.test(s)
+    ) {
+      return true
+    }
+  }
+  return false
+}
+
+async function get_csrf(domain, mode) {
+  let origin = new URL(domain).origin
 
   if (mode === `omit`) {
-    // Without credentials the server always issues a fresh cookie that we can capture
-    // and then inject ourselves, independent of the browser cookie jar
-    let res = await fetch(`${RENTRY}/`, {credentials: `omit`, cache: `no-store`})
-    await res.text()
+    captured_csrf.delete(origin)
+    let res = await fetch(`${origin}/`, {credentials: `omit`, cache: `no-store`})
+    let html = await res.text()
 
-    if (captured_csrf) {
-      return {token: captured_csrf, cookie: captured_csrf, mode}
+    if (is_cloudflare_challenge(res.status, html)) {
+      let err = new Error(`Cloudflare verification required on ${new URL(origin).host} (HTTP ${res.status})`)
+      err.is_cf = true
+      err.domain = origin
+      throw err
+    }
+
+    let token = captured_csrf.get(origin)
+    if (token) {
+      return {token, cookie: token, mode, domain: origin}
     }
 
     return null
   }
 
-  // Cookie jar mode: the browser keeps the cookie, we send the form token from the page
-  let res = await fetch(`${RENTRY}/`, {credentials: `include`, cache: `no-store`})
+  // Cookie jar mode: include cookies so existing clearance / sessions are preserved
+  let res = await fetch(`${origin}/`, {credentials: `include`, cache: `no-store`})
   let html = await res.text()
+
+  if (is_cloudflare_challenge(res.status, html)) {
+    let err = new Error(`Cloudflare verification required on ${new URL(origin).host} (HTTP ${res.status})`)
+    err.is_cf = true
+    err.domain = origin
+    throw err
+  }
+
   let m = html.match(/name=["']csrfmiddlewaretoken["']\s+value=["']([^"']+)["']/) ||
     html.match(/value=["']([^"']+)["']\s+name=["']csrfmiddlewaretoken["']/)
 
   if (!m) {
-    throw new Error(`Could not obtain a CSRF token from rentry.co`)
+    let cookieToken = captured_csrf.get(origin)
+    if (cookieToken) {
+      return {token: cookieToken, cookie: cookieToken, mode: `include`, domain: origin}
+    }
+    return null
   }
 
-  return {token: m[1], cookie: null, mode}
+  return {token: m[1], cookie: null, mode: `include`, domain: origin}
 }
 
-async function post_new(csrf, fields) {
+async function post_new(domain, csrf, fields) {
   let body = new URLSearchParams()
   body.set(`csrfmiddlewaretoken`, csrf.token)
 
@@ -156,7 +207,7 @@ async function post_new(csrf, fields) {
   inject_csrf = csrf.cookie
 
   try {
-    return await fetch(`${RENTRY}/api/new`, {
+    return await fetch(`${domain}/api/new`, {
       method: `POST`,
       body,
       credentials: csrf.mode,
@@ -228,6 +279,75 @@ function parse_rentry_error(data) {
   return parts.length ? parts.join(`. `) : `Upload failed`
 }
 
+async function upload_to_domain(domain, fields) {
+  let origin = new URL(domain).origin
+  let res = null
+  let csrf = null
+
+  // Try credentials: 'include' first so that any browser cookies / cf_clearance are sent
+  try {
+    csrf = await get_csrf(origin, `include`)
+  }
+  catch (err) {
+    if (err.is_cf) throw err
+  }
+
+  if (csrf) {
+    res = await post_new(origin, csrf, fields)
+  }
+
+  // If include failed or got rejected, try omit mode
+  if (!res || (res.status === 403)) {
+    if (res) {
+      let preview = await res.clone().text().catch(() => ``)
+      if (is_cloudflare_challenge(res.status, preview)) {
+        let err = new Error(`Cloudflare verification required on ${new URL(origin).host} (HTTP ${res.status})`)
+        err.is_cf = true
+        err.domain = origin
+        throw err
+      }
+    }
+
+    try {
+      let omit_csrf = await get_csrf(origin, `omit`)
+      if (omit_csrf) {
+        res = await post_new(origin, omit_csrf, fields)
+      }
+    }
+    catch (err) {
+      if (err.is_cf) throw err
+    }
+  }
+
+  if (!res) {
+    throw new Error(`Could not obtain a CSRF token from ${new URL(origin).host}`)
+  }
+
+  let raw = await res.text()
+
+  if (is_cloudflare_challenge(res.status, raw)) {
+    let err = new Error(`Cloudflare verification required on ${new URL(origin).host} (HTTP ${res.status})`)
+    err.is_cf = true
+    err.domain = origin
+    throw err
+  }
+
+  let data
+  try {
+    data = JSON.parse(raw)
+  }
+  catch (err) {
+    throw new Error(`Unexpected response from ${new URL(origin).host} (HTTP ${res.status})`)
+  }
+
+  if ((String(data.status) !== `200`) || !data.url) {
+    let msg = parse_rentry_error(data)
+    throw new Error(msg)
+  }
+
+  return {data, domain: origin}
+}
+
 async function upload(args) {
   let text = String(args.text || ``)
   let title = String(args.title || ``).trim().slice(0, 300)
@@ -246,40 +366,57 @@ async function upload(args) {
     throw new Error(`Custom URL must be 2-100 characters: letters, numbers, - and _`)
   }
 
+  let preferred_domain = RENTRY_CO
+  if (args.domain) {
+    try {
+      preferred_domain = new URL(args.domain).origin
+    }
+    catch (e) {}
+  }
+
+  let fallback_domain = (preferred_domain === RENTRY_CO) ? RENTRY_ORG : RENTRY_CO
   let fields = {text, edit_code, url: custom_url}
-  let res = null
-  let csrf = await get_csrf(`omit`)
-
-  if (csrf) {
-    res = await post_new(csrf, fields)
-  }
-
-  // CSRF rejected (or no cookie captured): retry using the browser cookie jar
-  if (!res || (res.status === 403)) {
-    csrf = await get_csrf(`include`)
-    res = await post_new(csrf, fields)
-  }
-
-  let raw = await res.text()
-  let data
+  let outcome = null
+  let primary_error = null
+  let fallback_used = false
 
   try {
-    data = JSON.parse(raw)
+    outcome = await upload_to_domain(preferred_domain, fields)
   }
   catch (err) {
-    throw new Error(`Unexpected response from rentry.co (HTTP ${res.status})`)
+    primary_error = err
+
+    // Only attempt fallback if primary failed with Cloudflare block or network failure
+    let should_fallback = err.is_cf || (err.message && err.message.includes(`HTTP 403`))
+    if (should_fallback) {
+      try {
+        outcome = await upload_to_domain(fallback_domain, fields)
+        fallback_used = true
+      }
+      catch (fallback_err) {
+        let errToThrow = primary_error.is_cf ? primary_error : fallback_err
+        if (errToThrow.is_cf) {
+          errToThrow.alt_domain = fallback_domain
+        }
+        throw errToThrow
+      }
+    }
+    else {
+      throw err
+    }
   }
 
-  if ((String(data.status) !== `200`) || !data.url) {
-    let msg = parse_rentry_error(data)
-    throw new Error(msg)
+  let {data, domain: used_domain} = outcome
+  let final_url = data.url
+  if (final_url) {
+    final_url = final_url.replace(/^https?:\/\/(www\.)?rentry\.(co|org)/i, used_domain)
   }
 
   let item = {
     id: make_id(),
     seq: 0,
     title,
-    url: data.url,
+    url: final_url,
     edit_code: data.edit_code || edit_code,
     created: Date.now(),
     chars: text.length,
@@ -295,7 +432,7 @@ async function upload(args) {
     await save_items(items)
   })
 
-  return item
+  return {item, fallback_used, used_domain, preferred_domain}
 }
 
 // ---------- History operations ----------
@@ -403,7 +540,7 @@ async function export_items() {
 browser.runtime.onMessage.addListener((msg) => {
   let run = async () => {
     switch (msg && msg.type) {
-      case `upload`: return {item: await upload(msg)}
+      case `upload`: return await upload(msg)
       case `update_title`: return await update_title(msg.id, msg.title)
       case `delete`: await delete_item(msg.id); return {}
       case `clear`: await clear_items(); return {}
@@ -415,6 +552,12 @@ browser.runtime.onMessage.addListener((msg) => {
 
   return run().then(
     (data) => ({ok: true, ...data}),
-    (err) => ({ok: false, error: (err && err.message) || String(err)}),
+    (err) => ({
+      ok: false,
+      error: (err && err.message) || String(err),
+      is_cf: !!(err && err.is_cf),
+      domain: err && err.domain,
+      alt_domain: err && err.alt_domain,
+    }),
   )
 })
