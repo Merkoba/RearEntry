@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Rear Entry",
-  "version": "2.1.0",
+  "version": "3",
   "description": "Upload your clipboard to rentry.co / rentry.org through the API. Keeps a searchable history of URLs and edit codes.",
   "author": "Merkoba",
   "homepage_url": "https://github.com/Merkoba/RearEntry",
