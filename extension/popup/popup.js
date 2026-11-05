@@ -24,7 +24,7 @@ const state = {
   range: `all`,
   sort: `new`,
   theme: `light`,
-  domain: `https://rentry.co`,
+  domain: `https://rentry.org`,
   current: null,
   modals: [],
   fresh_id: null,
@@ -796,7 +796,7 @@ function show_upload_error(err) {
   if (err && (err.is_cf || /cloudflare/i.test(msg) || /403/i.test(msg))) {
     if (actionsEl) {
       actionsEl.hidden = false
-      let targetDomain = err.domain || state.domain || `https://rentry.co`
+      let targetDomain = err.domain || state.domain || `https://rentry.org`
       let host = new URL(targetDomain).host
 
       let btnVerify = document.createElement(`button`)
@@ -879,7 +879,7 @@ async function submit_upload() {
   if (res.fallback_used && res.used_domain) {
     let usedHost = new URL(res.used_domain).host
     let prefHost = new URL(res.preferred_domain).host
-    toast(`Uploaded to ${usedHost} (${prefHost} was blocked by Cloudflare)`)
+    toast(`Uploaded to ${usedHost} (${prefHost} was blocked)`)
   }
 
   // Make sure the new item is visible at the top
@@ -1256,7 +1256,7 @@ async function init() {
   let data = await browser.storage.local.get([`items`, `theme`, `domain`])
   let theme = data.theme || document.documentElement.dataset.theme || `light`
   apply_theme(theme, false)
-  apply_domain(data.domain || `https://rentry.co`, false)
+  apply_domain(data.domain || `https://rentry.org`, false)
   state.items = Array.isArray(data.items) ? data.items : []
 
   $(`#ab-ver`).textContent = `v${browser.runtime.getManifest().version}`

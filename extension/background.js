@@ -366,7 +366,7 @@ async function upload(args) {
     throw new Error(`Custom URL must be 2-100 characters: letters, numbers, - and _`)
   }
 
-  let preferred_domain = RENTRY_CO
+  let preferred_domain = RENTRY_ORG
   if (args.domain) {
     try {
       preferred_domain = new URL(args.domain).origin
@@ -374,7 +374,7 @@ async function upload(args) {
     catch (e) {}
   }
 
-  let fallback_domain = (preferred_domain === RENTRY_CO) ? RENTRY_ORG : RENTRY_CO
+  let fallback_domain = (preferred_domain === RENTRY_ORG) ? RENTRY_CO : RENTRY_ORG
   let fields = {text, edit_code, url: custom_url}
   let outcome = null
   let primary_error = null
