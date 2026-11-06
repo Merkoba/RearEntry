@@ -465,76 +465,6 @@ function clear_items() {
   })
 }
 
-function import_items(incoming) {
-  return serial(async () => {
-    if (!Array.isArray(incoming)) {
-      throw new Error(`Invalid file: expected a list of items`)
-    }
-
-    let items = await get_items()
-    let seen = new Set(items.map((x) => x.url))
-    let data = await browser.storage.local.get([`seq`])
-    let seq = parseInt(data.seq) || 0
-    let added = 0
-
-    for (let raw of incoming) {
-      if (!raw || (typeof raw.url !== `string`) || !/^https?:\/\//.test(raw.url)) {
-        continue
-      }
-
-      if (seen.has(raw.url)) {
-        continue
-      }
-
-      seen.add(raw.url)
-      seq += 1
-      added += 1
-
-      items.push({
-        id: make_id(),
-        seq,
-        title: String(raw.title || ``).slice(0, 300),
-        url: raw.url,
-        edit_code: String(raw.edit_code || ``),
-        created: Number(raw.created) || Date.now(),
-        chars: Number(raw.chars) || 0,
-        lines: Number(raw.lines) || 0,
-        words: Number(raw.words) || 0,
-        preview: String(raw.preview || ``).slice(0, PREVIEW_LEN),
-      })
-    }
-
-    items.sort((a, b) => b.created - a.created)
-    await browser.storage.local.set({seq})
-    await save_items(items)
-    return {added, total: Math.min(items.length, MAX_ITEMS)}
-  })
-}
-
-async function export_items() {
-  let items = await get_items()
-
-  let payload = {
-    app: `Rear Entry`,
-    version: browser.runtime.getManifest().version,
-    exported: new Date().toISOString(),
-    items,
-  }
-
-  let blob = new Blob([JSON.stringify(payload, null, 2)], {type: `application/json`})
-  let url = URL.createObjectURL(blob)
-  let stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, `-`)
-
-  try {
-    await browser.downloads.download({url, filename: `rear-entry-${stamp}.json`, saveAs: true})
-  }
-  finally {
-    setTimeout(() => URL.revokeObjectURL(url), 60 * 1000)
-  }
-
-  return {count: items.length}
-}
-
 // ---------- Messaging ----------
 
 browser.runtime.onMessage.addListener((msg) => {
@@ -544,8 +474,6 @@ browser.runtime.onMessage.addListener((msg) => {
       case `update_title`: return await update_title(msg.id, msg.title)
       case `delete`: await delete_item(msg.id); return {}
       case `clear`: await clear_items(); return {}
-      case `import`: return await import_items(msg.items)
-      case `export`: return await export_items()
       default: throw new Error(`Unknown message`)
     }
   }

@@ -243,7 +243,7 @@ function apply_domain(domain, save = true) {
 
   let sub = $(`#upload-sub`)
   if (sub) {
-    sub.textContent = `Send clipboard contents to ${host}`
+    sub.textContent = `Paste text and upload to ${host}`
   }
 
   let heading = $(`#up-heading`)
@@ -360,20 +360,6 @@ async function copy(text, kind, btn) {
   }
 }
 
-async function read_clipboard() {
-  try {
-    return await navigator.clipboard.readText()
-  }
-  catch (err) {
-    let ta = document.createElement(`textarea`)
-    document.body.append(ta)
-    ta.focus()
-    document.execCommand(`paste`)
-    let v = ta.value
-    ta.remove()
-    return v
-  }
-}
 
 // ---------- Modals ----------
 
@@ -533,7 +519,7 @@ function empty_html() {
     <div class="empty">
       <span class="empty-face">📋</span>
       <b>No history yet.</b>
-      Copy markdown or text to your clipboard and click Upload above.
+      Click New Upload above and paste your markdown or text.
     </div>`
 }
 
@@ -730,39 +716,17 @@ function update_upload_meta() {
   meta.classList.toggle(`bad`, v.length > MAX_TEXT)
 }
 
-async function fill_from_clipboard() {
-  let text = ``
-
-  try {
-    text = await read_clipboard()
-  }
-  catch (err) {
-    text = ``
-  }
-
-  $(`#up-text`).value = text || ``
-  update_upload_meta()
-  return text
-}
-
-async function start_upload() {
+function start_upload() {
   $(`#up-error`).hidden = true
+  $(`#up-text`).value = ``
   $(`#up-title`).value = ``
   $(`#up-code`).value = ``
   $(`#up-url`).value = ``
   $(`#up-more`).open = false
+  update_upload_meta()
   set_loading(false)
   open_modal(`upload-modal`)
-
-  let text = await fill_from_clipboard()
-
-  if (!text) {
-    toast(`Clipboard is empty. Copy some text or type directly.`)
-    $(`#up-text`).focus()
-  }
-  else {
-    $(`#up-title`).focus()
-  }
+  $(`#up-text`).focus()
 }
 
 function set_loading(on) {
@@ -922,28 +886,7 @@ function sync_chips() {
 async function menu_action(action) {
   close_menu()
 
-  if (action === `export`) {
-    let res = await send({type: `export`})
-
-    if (res && res.ok) {
-      toast(`Exported ${plural(res.count, `item`)} 📦`)
-    }
-    else if (res && !/cancel/i.test(res.error)) {
-      toast(res.error, true)
-    }
-  }
-  else if (action === `import`) {
-    if (is_tab) {
-      $(`#ip-result`).textContent = ``
-      open_modal(`import-modal`)
-    }
-    else {
-      // File pickers close Firefox popups, so import happens in a tab
-      open_url(browser.runtime.getURL(`popup/popup.html?tab=1&action=import`))
-      window.close()
-    }
-  }
-  else if (action === `tab`) {
+  if (action === `tab`) {
     open_url(browser.runtime.getURL(`popup/popup.html?tab=1`))
     window.close()
   }
@@ -958,7 +901,7 @@ async function menu_action(action) {
 
     let ok = await confirm_dialog(
       `Clear all history?`,
-      `All ${plural(state.items.length, `item`)} (URLs and edit codes) will be forgotten forever. Pages stay on rentry.co. Consider exporting first!`,
+      `All ${plural(state.items.length, `item`)} (URLs and edit codes) will be forgotten forever. Pages stay on rentry.co.`,
       `Clear everything`,
     )
 
@@ -966,28 +909,6 @@ async function menu_action(action) {
       let res = await send({type: `clear`})
       toast(res && res.ok ? `All history cleared` : `Clear failed`, !(res && res.ok))
     }
-  }
-}
-
-async function import_file(file) {
-  let out = $(`#ip-result`)
-  out.textContent = `Reading…`
-
-  try {
-    let data = JSON.parse(await file.text())
-    let items = Array.isArray(data) ? data : data.items
-    let res = await send({type: `import`, items})
-
-    if (!res || !res.ok) {
-      throw new Error(res ? res.error : `Import failed`)
-    }
-
-    out.textContent = `✓ Imported ${plural(res.added, `new item`)} · ${num(res.total)} total`
-    toast(`Import completed successfully!`)
-  }
-  catch (err) {
-    out.textContent = `✗ ${err.message || err}`
-    toast(`Import failed`, true)
   }
 }
 
@@ -1116,10 +1037,6 @@ function bind() {
 
   // Upload modal
   $(`#up-text`).addEventListener(`input`, update_upload_meta)
-  $(`#up-reread`).addEventListener(`click`, async () => {
-    let t = await fill_from_clipboard()
-    toast(t ? `Clipboard re-read ✓` : `Clipboard is still empty`)
-  })
   $(`#up-dice`).addEventListener(`click`, dice_edit_code)
   $(`#up-submit`).addEventListener(`click`, submit_upload)
   $(`#up-domain`).addEventListener(`change`, (e) => apply_domain(e.target.value))
@@ -1164,16 +1081,6 @@ function bind() {
 
   $(`#cf-cancel`).addEventListener(`click`, () => close_modal(`confirm-modal`))
 
-  // Import
-  $(`#ip-file`).addEventListener(`change`, (e) => {
-    let f = e.target.files[0]
-
-    if (f) {
-      import_file(f)
-    }
-
-    e.target.value = ``
-  })
 
   // Keyboard
   document.addEventListener(`keydown`, (e) => {
@@ -1265,9 +1172,6 @@ async function init() {
   bind()
   refilter()
 
-  if (is_tab && (params.get(`action`) === `import`)) {
-    open_modal(`import-modal`)
-  }
 }
 
 init()

@@ -1,13 +1,13 @@
 # Rear Entry
 
-A Firefox extension that uploads your clipboard to [rentry.co](https://rentry.co)
+A Firefox extension that uploads markdown or text to [rentry.co](https://rentry.co)
 and keeps a searchable history of every URL and edit code.
 
 Made by **Merkoba** in 2026 · GPLv3 · https://github.com/Merkoba/RearEntry
 
 ## Features
 
-- Big **Upload clipboard** button (or press `U`)
+- Big **New upload** button (or press `U`) to paste and upload
 - Optional **title** (kept in your history), **edit code**, and **custom URL**
 - 🎲 edit code generator
 - History of up to 5,000 items, 100 per page
@@ -16,7 +16,6 @@ Made by **Merkoba** in 2026 · GPLv3 · https://github.com/Merkoba/RearEntry
 - Item details: copy URL, copy edit code, **Copy All** (`url - edit code`), open, edit page
 - New uploads appear at the top and open automatically
 - Light / dark theme, saved in `browser.storage.local`
-- Export / import history as JSON
 
 ## Install (development)
 

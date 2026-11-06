@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rear Entry</title>
-  <meta name="description" content="Rear Entry uploads your clipboard to rentry.co through the API and keeps a searchable history of URLs and edit codes.">
+  <meta name="description" content="Rear Entry uploads text to rentry.co through the API and keeps a searchable history of URLs and edit codes.">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -29,8 +29,6 @@
           </button>
 
           <div class="menu" id="menu" hidden>
-            <button data-action="export"><span>📦</span> Export history</button>
-            <button data-action="import"><span>📥</span> Import history</button>
             <button data-action="tab" id="menu-tab"><span>🪟</span> Open in a tab</button>
             <button data-action="about"><span>🚪</span> About Rear Entry</button>
             <hr>
@@ -45,8 +43,8 @@
         <svg viewBox="0 0 24 24"><path d="M12 16V4M6.5 9.5 12 4l5.5 5.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>
       </span>
       <span class="upload-text">
-        <span class="upload-title">Upload clipboard</span>
-        <span class="upload-sub" id="upload-sub">Send clipboard contents to rentry.org</span>
+        <span class="upload-title">New upload</span>
+        <span class="upload-sub" id="upload-sub">Paste text and upload to rentry.org</span>
       </span>
       <kbd class="upload-kbd">U</kbd>
     </button>
@@ -106,11 +104,7 @@
       </div>
 
       <div class="field">
-        <div class="field-label">
-          <span>Clipboard contents</span>
-          <button class="link-btn" id="up-reread" data-tip="Read the clipboard again">↻ Re-read</button>
-        </div>
-        <textarea id="up-text" rows="6" spellcheck="false" placeholder="Your clipboard is empty. Paste or type text here."></textarea>
+        <textarea id="up-text" rows="6" spellcheck="false" placeholder="Paste or type text here…" aria-label="Upload content"></textarea>
         <div class="field-meta" id="up-meta"></div>
       </div>
 
@@ -246,26 +240,12 @@
       </div>
     </div>
 
-    <!-- Import -->
-    <div class="modal small" id="import-modal" role="dialog" aria-labelledby="ip-title" hidden>
-      <button class="modal-x" data-close aria-label="Close">×</button>
-      <div class="modal-head">
-        <h2 id="ip-title">Import history</h2>
-      </div>
-      <p class="cf-text">Pick a JSON file exported by Rear Entry. Duplicates (same URL) are skipped, nothing gets overwritten.</p>
-      <label class="btn btn-primary file-btn">
-        Choose file…
-        <input type="file" id="ip-file" accept=".json,application/json" hidden>
-      </label>
-      <div class="ip-result" id="ip-result"></div>
-    </div>
-
     <!-- About -->
     <div class="modal small about" id="about-modal" role="dialog" aria-labelledby="ab-title" hidden>
       <button class="modal-x" data-close aria-label="Close">×</button>
       <img src="../icons/icon-256.png" class="about-icon" alt="">
       <h2 id="ab-title">Rear Entry <span class="ver" id="ab-ver"></span></h2>
-      <p>Quickly upload clipboard markdown to <b>rentry.co</b> or <b>rentry.org</b> and maintain a searchable history of URLs and edit codes.</p>
+      <p>Quickly upload markdown to <b>rentry.co</b> or <b>rentry.org</b> and maintain a searchable history of URLs and edit codes.</p>
       <p class="credits">Made by <b>Merkoba</b> in 2026 · GPLv3<br>
         <a href="https://github.com/Merkoba/RearEntry" class="ext-link">github.com/Merkoba/RearEntry</a></p>
     </div>

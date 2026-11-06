@@ -887,8 +887,6 @@ html[data-theme="dark"] .btn-soft.ok {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.file-btn { width: 100%; cursor: pointer; }
-
 /* ---------------- Item modal ---------------- */
 
 .item-modal { overflow: hidden auto; }
@@ -1086,10 +1084,9 @@ html[data-theme="dark"] .btn-soft.ok {
   100% { transform: translate(var(--drift, 30px), 560px) rotate(var(--spin, 540deg)); opacity: 0; }
 }
 
-/* ---------------- Confirm / import / about ---------------- */
+/* ---------------- Confirm / about ---------------- */
 
 .cf-text { margin: 0 0 14px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
-.ip-result { margin-top: 10px; font-size: 12px; font-weight: 700; text-align: center; }
 
 .about { text-align: center; }
 .about p { font-size: 12.5px; line-height: 1.5; margin: 0 0 10px; }

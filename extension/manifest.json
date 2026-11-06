@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Rear Entry",
-  "version": "4",
-  "description": "Upload your clipboard to rentry.co / rentry.org through the API. Keeps a searchable history of URLs and edit codes.",
+  "version": "5",
+  "description": "Upload markdown to rentry.co / rentry.org through the API. Keeps a searchable history of URLs and edit codes.",
   "author": "Merkoba",
   "homepage_url": "https://github.com/Merkoba/RearEntry",
 
@@ -31,9 +31,7 @@
 
   "permissions": [
     "storage",
-    "clipboardRead",
     "clipboardWrite",
-    "downloads",
     "webRequest",
     "webRequestBlocking",
     "cookies",
