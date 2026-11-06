@@ -468,6 +468,8 @@ function refilter(reset_page = true) {
 const ICON_COPY = `<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg>`
 const ICON_KEY = `<svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 7.7-7.7a1.5 1.5 0 0 1 2.1 0l1.4 1.4a1.5 1.5 0 0 1 0 2.1l-1.5 1.5M16 9l2 2"/></svg>`
 const ICON_OPEN = `<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg>`
+const ICON_LINK = `<svg class="pill-icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`
+const ICON_KEY_MINI = `<svg class="pill-icon" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 7.7-7.7a1.5 1.5 0 0 1 2.1 0l1.4 1.4a1.5 1.5 0 0 1 0 2.1l-1.5 1.5M16 9l2 2"/></svg>`
 
 function item_html(it, i) {
   let title = it.title ? hl(it.title) : `Untitled upload`
@@ -492,8 +494,8 @@ function item_html(it, i) {
           <span class="item-time" data-tip="${esc(full)}">${esc(ago(it.created))}</span>
         </div>
         <div class="item-row">
-          <span class="pill url" data-tip="${esc(it.url)}">${hl(id)}</span>
-          <span class="pill code" data-tip="${esc(`Edit code: ${code || `—`}`)}">${code ? hl(code) : `—`}</span>
+          <span class="pill url" data-tip="${esc(it.url)}">${ICON_LINK}<span class="pill-label">${hl(id)}</span></span>
+          <span class="pill code" data-tip="${esc(`Edit code: ${code || `—`}`)}">${ICON_KEY_MINI}<span class="pill-label">${code ? hl(code) : `—`}</span></span>
         </div>
         ${first_line ? `<div class="item-preview" data-tip="${esc(it.preview)}">${hl(first_line)}</div>` : ``}
         <div class="item-meta">
@@ -947,7 +949,7 @@ function bind() {
 
     if (link) {
       e.preventDefault()
-      open_url(link.href)
+      open_url(link.href, true)
     }
   })
 
