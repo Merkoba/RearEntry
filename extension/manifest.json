@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Rear Entry",
-  "version": "5",
+  "version": "6",
   "description": "Upload markdown to rentry.co / rentry.org through the API. Keeps a searchable history of URLs and edit codes.",
   "author": "Merkoba",
   "homepage_url": "https://github.com/Merkoba/RearEntry",

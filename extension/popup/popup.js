@@ -157,8 +157,16 @@ function plural(count, singular, plural_form = `${singular}s`) {
   return `${num(n)} ${plural_word(n, singular, plural_form)}`
 }
 
-function slug(url) {
-  return String(url || ``).replace(/^https?:\/\/(www\.)?/, ``)
+function url_id(url) {
+  let s = String(url || ``).trim()
+  try {
+    let u = new URL(s.startsWith(`http`) ? s : `https://${s}`)
+    let p = u.pathname.replace(/^\/+|\/+$/g, ``)
+    return p || u.host
+  }
+  catch (err) {
+    return s.replace(/^https?:\/\/(www\.)?[^\/]+\/?/, ``) || s
+  }
 }
 
 function hue(item) {
@@ -463,9 +471,7 @@ const ICON_OPEN = `<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path
 
 function item_html(it, i) {
   let title = it.title ? hl(it.title) : `Untitled upload`
-  let s = slug(it.url)
-  let [host, ...rest] = s.split(`/`)
-  let path = rest.join(`/`)
+  let id = url_id(it.url)
   let first_line = String(it.preview || ``).split(`\n`).find((l) => l.trim()) || ``
   let full = fmt_date(it.created)
   let code = it.edit_code || ``
@@ -486,7 +492,7 @@ function item_html(it, i) {
           <span class="item-time" data-tip="${esc(full)}">${esc(ago(it.created))}</span>
         </div>
         <div class="item-row">
-          <span class="pill url" data-tip="${esc(it.url)}">${hl(host)}/<b>${hl(path)}</b></span>
+          <span class="pill url" data-tip="${esc(it.url)}">${hl(id)}</span>
           <span class="pill code" data-tip="${esc(`Edit code: ${code || `—`}`)}">${code ? hl(code) : `—`}</span>
         </div>
         ${first_line ? `<div class="item-preview" data-tip="${esc(it.preview)}">${hl(first_line)}</div>` : ``}
